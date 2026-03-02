@@ -1,0 +1,2426 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>KMT Editor v1.7.9</title>
+<style>
+    :root{
+      --bg:#0b0d10; --panel:#11151b; --panel2:#0f1318; --text:#e7eefc; --muted:#94a3b8;
+      --line:rgba(255,255,255,.09); --accent:#7aa2ff; --warn:#ffb84d; --bad:#ff5e5e; --good:#5cff9a;
+      --r:18px; --r2:22px; --shadow:0 14px 48px rgba(0,0,0,.48);
+      --mono: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      --sans: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:var(--sans); color:var(--text); overflow:hidden;
+      background:
+        radial-gradient(1100px 700px at 75% 0%, rgba(122,162,255,.12), transparent 60%),
+        radial-gradient(900px 650px at 0% 45%, rgba(92,255,154,.08), transparent 60%),
+        var(--bg);
+    }
+    .app{height:100%; display:grid; grid-template-rows:auto 1fr auto}
+    header{
+      display:flex; align-items:center; gap:12px; padding:14px 16px;
+      border-bottom:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(17,21,27,.94), rgba(17,21,27,.72));
+      backdrop-filter:blur(10px);
+    }
+    .brand{min-width:250px}
+    .brand .t{display:flex; gap:10px; align-items:center; font-weight:700; letter-spacing:.2px; font-size:14px; white-space:nowrap}
+    .brand .s{font-size:12px; color:var(--muted); margin-top:2px}
+    .pill{font-size:11px; padding:2px 8px; border:1px solid var(--line); border-radius:999px; color:var(--muted); background:rgba(255,255,255,.03)}
+    .pill.donateSpec{
+      text-decoration:none;
+      border-color: rgba(255,184,77,.35);
+      background: rgba(255,184,77,.12);
+      color: var(--text);
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .pill.donateSpec:hover{
+      border-color: rgba(255,184,77,.55);
+      background: rgba(255,184,77,.18);
+    }
+    .donateCupWrap{ display:inline-flex; align-items:center; height:14px; }
+    .donateCupImg{ width:14px; height:14px; display:block; image-rendering:auto; }
+
+    .pill.dirty{background:var(--warn); color:#0b0d10; border-color:rgba(0,0,0,.22); font-weight:800}
+    .toolbar{display:flex; align-items:center; gap:10px; flex:1; min-width:0}
+    .group{
+      display:flex; align-items:end; gap:10px; padding:10px 12px;
+      border:1px solid var(--line); border-radius:var(--r);
+      background:rgba(255,255,255,.03);
+      min-width:0;
+    }
+    .group.tight{padding:8px 10px; align-items:center}
+    .field{display:flex; flex-direction:column; gap:6px; min-width:0}
+    label.small{font-size:11px; color:var(--muted)}
+    input[type="text"], input[type="number"], select{
+      width:100%; padding:8px 10px; border-radius:10px;
+      border:1px solid var(--line); background:rgba(0,0,0,.26); color:var(--text);
+      outline:none; font-size:13px; height:36px;
+    }
+    input[type="number"]{font-family:var(--mono)}
+    select{cursor:pointer; height:36px; padding:4px 8px;}
+    .btn{
+      appearance:none; border:1px solid var(--line); background:rgba(255,255,255,.05); color:var(--text);
+      padding:10px 12px; border-radius:12px; cursor:pointer; user-select:none;
+      transition:transform .06s ease, background .12s ease, border-color .12s ease;
+      white-space:nowrap;
+    }
+    .btn:hover{background:rgba(255,255,255,.08)}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{background:rgba(122,162,255,.18); border-color:rgba(122,162,255,.36)}
+    .btn.primary:hover{background:rgba(122,162,255,.26)}
+    .btn.danger{background:rgba(255,94,94,.14); border-color:rgba(255,94,94,.36)}
+    .btn.small{padding:7px 10px; border-radius:11px; font-size:12px}
+    .btn.sm{padding:6px 9px; border-radius:10px; font-size:11px; appearance:none; border:1px solid var(--line); background:rgba(255,255,255,.05); color:var(--text); cursor:pointer; user-select:none; white-space:nowrap;}
+    .btn.sm:hover{background:rgba(255,255,255,.08)}
+    .btn.sm.ghost{background:transparent}
+    .btn.ghost{background:transparent}
+    .row{display:flex; gap:10px; align-items:center; min-width:0}
+    .toggle{display:inline-flex; gap:8px; align-items:center; cursor:pointer; user-select:none; white-space:nowrap}
+    .toggle input{width:18px; height:18px}
+
+    main{
+      height:100%;
+      display:grid;
+      grid-template-columns: 260px 1fr 380px;
+      gap:12px; padding:12px;
+      overflow:hidden;
+    }
+    .panel{
+      border:1px solid var(--line); border-radius:var(--r2); box-shadow:var(--shadow);
+      background:linear-gradient(180deg, rgba(17,21,27,.86), rgba(15,19,24,.86));
+      overflow:hidden; min-width:0; display:flex; flex-direction:column;
+    }
+    .ph{display:flex; align-items:center; justify-content:space-between; padding:0 14px; height:52px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.02); flex-shrink:0}
+    .ph .h{font-size:13px; font-weight:750; letter-spacing:.2px}
+    .pc{padding:12px 14px; overflow:auto; flex:1; min-height:0}
+
+    /* ══ SLOT PILLS: single source of truth, no conflicts ══ */
+    .slot .sub{
+      display:flex; flex-wrap:wrap; align-items:center; gap:5px;
+    }
+    .slot .sub span, .slot .sub .tag, .slot .tag{
+      display:inline-flex; align-items:center; justify-content:center;
+      height:20px; line-height:1; padding:0 8px;
+      font-size:11px; font-family:var(--mono); white-space:nowrap;
+      border-radius:999px;
+      background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.08);
+      color:rgba(231,238,252,.72);
+      box-sizing:border-box; flex-shrink:0;
+    }
+
+    /* ══ PREVIEW COLUMN ══
+       JS sets --knob-d and --btn-h as CSS custom properties after measuring.
+       CSS uses those to size the slots perfectly.
+    ══ */
+    .panel.preview .pc{
+      overflow:hidden;
+      display:flex; flex-direction:column;
+      gap:0; padding:10px 12px 6px;
+      min-height:0;
+      box-sizing:border-box;
+    }
+    .panel.preview .banner{ flex:0 0 auto; margin-bottom:6px; }
+    .panel.preview .sectTitle{
+      flex:0 0 auto; margin:0 0 4px; font-size:11px; font-weight:800;
+    }
+    .panel.preview .grid.knobs{
+      flex:0 0 auto;
+      gap:6px;
+      margin-bottom:8px;
+    }
+    .panel.preview .grid.buttons{
+      flex:0 0 auto;
+      gap: 13px;
+      grid-template-columns:repeat(8, minmax(0,1fr));
+    }
+
+    /* ── Knob circles: diameter from JS var --knob-d ── */
+    .panel.preview .grid.knobs .slot{
+      border-radius:999px;
+      width:var(--knob-d, 90px);
+      height:var(--knob-d, 90px);
+      min-height:0; min-width:0;
+      padding:4px;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:flex-start;
+      gap:2px; text-align:center;
+      overflow:hidden;
+      justify-self:center;
+      box-sizing:border-box;
+      position:relative;
+    }
+    .panel.preview .grid.knobs .slot .top{
+      padding-right:0; justify-content:center; flex-wrap:nowrap; gap:2px; width:100%;
+      order:2;
+    }
+    .panel.preview .grid.knobs .slot .lbl{
+      font-weight:700; text-align:center; white-space:nowrap;
+      overflow:hidden; text-overflow:ellipsis; flex:none;
+      width:calc(var(--knob-d, 90px) - 12px);
+      font-size:var(--preview-fs, 10px);
+      line-height:1.2;
+    }
+    .panel.preview .grid.knobs .slot .sub{
+      justify-content:center; gap:2px; flex-wrap:wrap;
+      width:calc(var(--knob-d, 90px) - 8px);
+      order:3;
+    }
+    .panel.preview .grid.knobs .slot .sub span,
+    .panel.preview .grid.knobs .slot .sub .tag,
+    .panel.preview .grid.knobs .slot .tag{
+      height:var(--preview-pill-h, 13px);
+      font-size:var(--preview-pill-fs, 8px);
+      padding:0 3px;
+      overflow:hidden; text-overflow:ellipsis;
+      max-width:calc(var(--knob-d, 90px) - 10px);
+    }
+    /* drag hidden; copy/paste at top (order:1), compact */
+    .panel.preview .grid.knobs .slot .drag{ display:none; }
+    .panel.preview .grid.knobs .slot .slot-actions{
+      order:1;
+      position:static; transform:none;
+      display:flex; justify-content:center; gap:2px;
+      opacity:0; width:100%;
+      flex-shrink:0;
+    }
+    .panel.preview .grid.knobs .slot:hover .slot-actions{ opacity:1; }
+    .panel.preview .grid.knobs .slot .slot-actions button{
+      font-size:7px; padding:1px 3px; border-radius:4px; line-height:1.3;
+    }
+
+    /* ── Button slots: 8 per row (narrower), height from --btn-h ── */
+    .panel.preview .grid.buttons{
+      grid-template-columns:repeat(4, minmax(0,1fr));
+    }
+    .panel.preview .grid.buttons .slot{
+      min-height:0;
+      height:var(--btn-h, 46px);
+      gap:1px; padding:3px 5px; border-radius:8px;
+      display:flex; flex-direction:column; justify-content:center;
+      box-sizing:border-box; overflow:hidden;
+    }
+    .panel.preview .grid.buttons .slot .top{
+      gap:2px; padding-right:0; flex-wrap:nowrap;
+    }
+    .panel.preview .grid.buttons .slot .lbl{
+      font-size:var(--preview-fs, 10px);
+      font-weight:700; flex:1; min-width:0;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .panel.preview .grid.buttons .slot .sub{ gap:2px; flex-wrap:wrap; }
+    .panel.preview .grid.buttons .slot .sub span,
+    .panel.preview .grid.buttons .slot .sub .tag,
+    .panel.preview .grid.buttons .slot .tag{
+      height:var(--preview-pill-h, 13px);
+      font-size:var(--preview-pill-fs, 8px);
+      padding:0 3px;
+    }
+    /* drag hidden; copy/paste on hover */
+    .panel.preview .grid.buttons .slot .drag{ display:none; }
+    .panel.preview .grid.buttons .slot .slot-actions{
+      position:absolute; bottom:2px; right:2px;
+      opacity:0; gap:2px;
+    }
+    .panel.preview .grid.buttons .slot:hover .slot-actions{ opacity:1; }
+    .panel.preview .grid.buttons .slot .slot-actions button{
+      font-size:7px; padding:1px 3px; border-radius:4px; line-height:1.3;
+    }
+
+    /* Banner in preview: taller, proportional to 1280×212 ratio (~6:1) */
+    .panel.preview .banner .img{
+      height:var(--banner-h, 80px);
+      background-size:cover; background-position:center;
+    }
+    .panel.preview .banner .ov{ padding:6px 12px; }
+    .panel.preview .banner .tt{ font-size:12px; }
+    .panel.preview .banner .ss{ font-size:10px; }
+
+
+    .hint{
+      font-size:11px; color:rgba(231,238,252,.75); line-height:1.35;
+      background:rgba(122,162,255,.12); border:1px solid rgba(122,162,255,.24);
+      padding:10px 10px; border-radius:14px;
+    }
+    .kbd{font-family:var(--mono); font-size:11px; padding:3px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.08); background:rgba(0,0,0,.22); color:rgba(231,238,252,.75)}
+    .pages{display:flex; flex-direction:column; gap:10px}
+    .pageItem{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:10px 10px; border-radius:14px; border:1px solid var(--line);
+      background:rgba(255,255,255,.03); cursor:pointer;
+    }
+    .pageItem.active{border-color:rgba(122,162,255,.55); background:rgba(122,162,255,.12)}
+    .pageItem .left{min-width:0}
+    .pageItem .name{font-size:13px; font-weight:750; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .pageItem .meta{font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px}
+    .pageItem .actions{display:flex; gap:6px}
+
+    .banner{
+      border:1px solid var(--line); border-radius:18px; overflow:hidden; background:rgba(0,0,0,.18)
+    }
+    .banner .img{height:104px; background-size:cover; background-position:center}
+    .banner .ov{
+      display:flex; justify-content:space-between; gap:10px; padding:10px 12px;
+      border-top:1px solid rgba(255,255,255,.06);
+      background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.05));
+    }
+    .banner .tt{font-weight:800; font-size:13px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    .banner .ss{font-size:11px; color:var(--muted); white-space:nowrap}
+
+    .sectTitle{font-size:12px; font-weight:800; letter-spacing:.2px; margin:10px 0 10px; display:flex; align-items:center; justify-content:space-between; gap:10px}
+    .grid{display:grid; gap:12px}
+    .grid.knobs, .grid.buttons{grid-template-columns:repeat(4, minmax(0,1fr))}
+    .slot{
+      border:1px solid var(--line); border-radius:18px; background:rgba(255,255,255,.03);
+      padding:12px 12px; min-height:86px; cursor:pointer; position:relative;
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .slot:hover{background:rgba(255,255,255,.05)}
+    .slot.active{border-color:rgba(122,162,255,.62); box-shadow:0 0 0 1px rgba(122,162,255,.22) inset; background:rgba(122,162,255,.12)}
+    .slot .top{display:flex; align-items:center; justify-content:flex-start; gap:8px; padding-right:34px}
+    .slot .lbl{font-weight:850; font-size:13px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1}
+    .slot .tag{font-family:var(--mono); font-size:11px; color:rgba(231,238,252,.7); background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.06); padding:2px 7px; border-radius:999px; white-space:nowrap; align-self:flex-start}
+    .slot .sub{display:flex; flex-wrap:wrap; gap:6px; font-size:11px; color:var(--muted)}
+    .slot .sub span{font-family:var(--mono); background:rgba(0,0,0,.2); border:1px solid rgba(255,255,255,.06); padding:2px 7px; border-radius:999px}
+    .slot .drag{position:absolute; top:10px; right:10px; font-family:var(--mono); font-size:12px; padding:2px 6px; border-radius:999px; border:1px solid rgba(255,255,255,.08); background:rgba(0,0,0,.2); color:rgba(231,238,252,.55); cursor:grab}
+    /* Prevent child elements from intercepting drag events - drop must land on .slot */
+    .slot .drag, .slot .top, .slot .lbl, .slot .tag, .slot .sub, .slot .sub span{pointer-events:none}
+    .slot.dragging{opacity:.55; outline:2px dashed rgba(122,162,255,.55); outline-offset:2px}
+
+    footer{
+      padding:8px 16px; border-top:1px solid var(--line); background:rgba(17,21,27,.68);
+      display:flex; justify-content:space-between; gap:12px; align-items:center;
+      min-height:36px;
+    }
+    .status{font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; min-width:0}
+    .footerCopy{font-size:11px; color:rgba(148,163,184,.38); white-space:nowrap; flex:0 0 auto; user-select:none; letter-spacing:.3px; text-align:center; position:absolute; left:50%; transform:translateX(-50%)}
+    footer{position:relative}
+    .footerHelp{font-size:11px; color:rgba(148,163,184,.55); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; text-align:right; font-style:italic; transition:color .15s; min-width:0}
+    .footerHelp.active{color:rgba(122,162,255,.85); font-style:normal}
+    .ok{color:var(--good)} .bad{color:var(--bad)} .warn{color:var(--warn)}
+
+    /* Modal */
+    .modalBack{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; padding:18px; z-index:1000}
+    .modal{width:min(1180px, 100%); border:1px solid var(--line); border-radius:22px; box-shadow:var(--shadow); overflow:hidden;
+      background:linear-gradient(180deg, rgba(17,21,27,.96), rgba(15,19,24,.96));
+      max-height:calc(100vh - 36px); display:flex; flex-direction:column}
+    .mh{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid var(--line)}
+    .mh .h{font-weight:850; font-size:13px}
+    .mb{flex:1; display:flex; flex-direction:column; gap:12px; padding:14px; overflow:hidden}
+
+    /* Artwork viewport: internal render is 1280×212. Display can be "fit" (uniform) or 1:1 (scroll). */
+.cropArea{
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:rgba(0,0,0,.2);
+  padding:10px;
+  overflow:hidden;
+}
+.cropArea.view-11{ overflow:auto; }
+.cropArea.view-fit{ overflow:hidden; }
+#cropCanvas{ touch-action:none; }
+.cropArea.view-fit #cropCanvas{ width:min(100%, 1280px); aspect-ratio:1280 / 212; height:auto; }
+.cropArea.view-11 #cropCanvas{ width:1280px; height:212px; }
+canvas{display:block}
+
+    /* Artwork modal layout: viewport on top, controls panel below (non-scrolling) */
+    .artViewWrap{flex:1; min-height:240px; display:flex; flex-direction:column; gap:10px}
+    .artControls{border-top:1px solid var(--line); padding-top:12px; overflow:visible}
+    .artControlsGrid{display:grid; grid-template-columns:1.2fr 1fr .9fr; gap:12px; align-items:start}
+    .artControlsGrid .cardish{border:1px solid var(--line); border-radius:16px; padding:10px; background:rgba(255,255,255,.02)}
+    .artControlsGrid .cardish .sectTitle{margin-top:0}
+    @media (max-width: 980px){
+      .artControlsGrid{grid-template-columns:1fr}
+    }
+
+    .mf{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 14px; border-top:1px solid var(--line)}
+    input[type="range"]{width:100%}
+
+    @media (max-width: 1200px){ main{grid-template-columns:210px 1fr 330px} }
+    @media (max-width: 980px){ main{grid-template-columns:1fr} .panel.side,.panel.inspector{display:flex; flex-direction:column} main{display:flex; flex-direction:column; height:100vh} .panel{width:100%} .panel.center{flex:1} .panel.side,.panel.inspector{max-height:42vh; overflow:auto} }
+  
+    /* MIDI Library (Preview) */
+    .midiLib{ margin: 12px 0 10px; border:1px solid var(--line); border-radius:16px; background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015)); overflow:hidden; }
+    .mlHead{ display:flex; align-items:center; justify-content:space-between; padding:10px 12px; gap:10px; border-bottom:1px solid var(--line); }
+    .mlTitle{ font-weight:700; letter-spacing:.2px; }
+    .mlBtns{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .mlBody{ padding:10px 12px; }
+    .mlBody.collapsed{ display:none; }
+    .mlHint{ color:var(--muted); font-size:12px; margin-bottom:8px; }
+    .mlList{ display:flex; flex-direction:column; gap:8px; max-height:320px; overflow:auto; padding-right:4px; }
+    .mlItem{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; padding:9px 10px; border:1px solid rgba(255,255,255,.10); border-radius:14px; background:rgba(0,0,0,.22); cursor:grab; user-select:none; }
+    .mlItem:active{ cursor:grabbing; }
+    .mlLeft{ min-width:0; display:flex; flex-direction:column; gap:5px; }
+    .mlName{ font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mlMeta{ display:flex; gap:6px; flex-wrap:wrap; }
+    .mlMeta .pill{ padding:2px 8px; font-size:11px; border-radius:999px; }
+    .midiLib.drop{ outline:2px solid rgba(122,162,255,.7); outline-offset:2px; }
+    .slot.dropok{ outline:2px solid rgba(122,162,255,.55); outline-offset:2px; }
+
+
+    /* Right panel tabs */
+    .tabs{display:flex; gap:6px; align-items:center; flex-wrap:nowrap; height:52px}
+    .tab{
+      appearance:none; border:1px solid var(--line); background:rgba(255,255,255,.03);
+      color:var(--muted); border-radius:999px; padding:0 10px; height:32px; font-size:12px;
+      cursor:pointer; line-height:32px; user-select:none;
+    }
+    .tab:hover{border-color:rgba(255,255,255,.16); color:var(--text)}
+    .tab.active{background:rgba(122,162,255,.16); border-color:rgba(122,162,255,.42); color:var(--text); font-weight:700}
+    #paneLibrary{ flex:1; min-height:0; display:none; flex-direction:column }
+    #paneLibrary.active{ display:flex; flex-direction:column; flex:1; min-height:0 }
+    #paneInspector{ display:none; flex-direction:column }
+    #paneInspector.active{ display:block; flex:1 }
+    .midiLib{ flex:1; display:flex; flex-direction:column; min-height:0; overflow:hidden }
+    .mlBody{ flex:1; display:flex; flex-direction:column; min-height:0; overflow:hidden }
+    .mlList{ flex:1; max-height:none; overflow:auto; padding-right:4px }
+    .tabPane{display:none; flex-direction:column}
+    .tabPane.active{display:flex; flex-direction:column; min-height:0; flex:1}
+    .panel.inspector[data-active-tab="library"] #btnResetSlot{display:none}
+
+
+    /* === MIDI Library styles === */
+    .mlCount{font-size:11px; color:var(--muted); font-weight:400; margin-left:4px}
+    .mlAiStatus{padding:8px 12px; font-size:12px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px}
+    .mlAiStatus.ok{background:rgba(92,255,154,.08); color:var(--good)}
+    .mlAiStatus.err{background:rgba(255,94,94,.08); color:var(--bad)}
+    .mlSpinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(122,162,255,.3);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .mlAddForm{padding:10px 12px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.02)}
+    .mlAddRow{display:flex; gap:6px; align-items:flex-end}
+    .mlAddRow .field{margin-bottom:0}
+    .mlAddRow input{padding:7px 8px; font-size:12px; border-radius:10px}
+    .mlItem .mlActions{display:flex; gap:4px; flex-shrink:0; align-items:center}
+    .mlItem .mlEdit{font-size:10px; padding:2px 6px; border-radius:8px; border:1px solid var(--line); background:rgba(255,255,255,.04); color:var(--muted); cursor:pointer}
+    .mlItem .mlEdit:hover{background:rgba(255,255,255,.08); color:var(--text)}
+    .btn.sm.primary{background:rgba(122,162,255,.18); border-color:rgba(122,162,255,.36); color:var(--text)}
+    .btn.sm.primary:hover{background:rgba(122,162,255,.28)}
+
+    /* Pagina-filter rij */
+    .mlPageRange{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.02);flex-shrink:0}
+    .mlPageRange label.small{white-space:nowrap;color:var(--muted)}
+    .mlPageRange input[type=number]{width:54px;padding:4px 6px;font-size:12px;font-family:var(--mono);border-radius:8px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:var(--text);outline:none}
+    .mlPageRangeSep{color:var(--muted);font-size:13px}
+
+    /* Copy/paste knoppen in slots */
+    .slot-actions{position:absolute;bottom:5px;right:5px;display:flex;gap:2px;opacity:0;transition:opacity .1s;z-index:2}
+    .slot:hover .slot-actions{opacity:1}
+    .slot-actions button{font-size:9px;padding:2px 5px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.4);color:rgba(231,238,252,.75);cursor:pointer;line-height:1.4;white-space:nowrap}
+    .slot-actions button:hover{background:rgba(122,162,255,.28);color:var(--text);border-color:rgba(122,162,255,.4)}
+    .slot-actions .paste-btn{display:none}
+    .slot-actions .paste-btn.has-clip{display:inline}
+    /* pointer-events doorbreken (parent zet none) */
+    .slot .slot-actions,.slot .slot-actions button{pointer-events:all!important}
+
+    /* Gelijke koptekst hoogte alle 3 kolommen */
+    .ph{min-height:52px}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<div class="brand">
+<div class="t">
+        KMT Editor
+        <span class="pill" id="pillVer">v1.7.9</span>
+
+        <a class="pill donateSpec" id="donateBadge" href="https://buymeacoffee.com/patronix.music" target="_blank" rel="noopener noreferrer">Buy me a coffee <span class="donateCupWrap" aria-hidden="true"><img class="donateCupImg" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABY2lDQ1BrQ0dDb2xvclNwYWNlRGlzcGxheVAzAAAokX2QsUvDUBDGv1aloHUQHRwcMolDlJIKuji0FURxCFXB6pS+pqmQxkeSIgU3/4GC/4EKzm4Whzo6OAiik+jm5KTgouV5L4mkInqP435877vjOCA5bnBu9wOoO75bXMorm6UtJfWMBL0gDObxnK6vSv6uP+P9PvTeTstZv///jcGK6TGqn5QZxl0fSKjE+p7PJe8Tj7m0FHFLshXyieRyyOeBZ71YIL4mVljNqBC/EKvlHt3q4brdYNEOcvu06WysyTmUE1jEDjxw2DDQhAId2T/8s4G/gF1yN+FSn4UafOrJkSInmMTLcMAwA5VYQ4ZSk3eO7ncX3U+NtYMnYKEjhLiItZUOcDZHJ2vH2tQ8MDIEXLW54RqB1EeZrFaB11NguASM3lDPtlfNauH26Tww8CjE2ySQOgS6LSE+joToHlPzA3DpfAEDp2ITpJYOWwAAAARjSUNQDA0AAW4D4+8AAACWZVhJZk1NACoAAAAIAAUBEgADAAAAAQABAAABGgAFAAAAAQAAAEoBGwAFAAAAAQAAAFIBKAADAAAAAQACAACHaQAEAAAAAQAAAFoAAAAAAAAAkAAAAAEAAACQAAAAAQADkoYABwAAABIAAACEoAIABAAAAAEAAAAgoAMABAAAAAEAAAAgAAAAAEFTQ0lJAAAAU2NyZWVuc2hvdPZIhPwAAAAJcEhZcwAAFiUAABYlAUlSJPAAAALVaVRYdFhNTDpjb20uYWRvYmUueG1wAAAAAAA8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIiB4OnhtcHRrPSJYTVAgQ29yZSA2LjAuMCI+CiAgIDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+CiAgICAgIDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiCiAgICAgICAgICAgIHhtbG5zOmV4aWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vZXhpZi8xLjAvIgogICAgICAgICAgICB4bWxuczp0aWZmPSJodHRwOi8vbnMuYWRvYmUuY29tL3RpZmYvMS4wLyI+CiAgICAgICAgIDxleGlmOlBpeGVsWERpbWVuc2lvbj41NDwvZXhpZjpQaXhlbFhEaW1lbnNpb24+CiAgICAgICAgIDxleGlmOlVzZXJDb21tZW50PlNjcmVlbnNob3Q8L2V4aWY6VXNlckNvbW1lbnQ+CiAgICAgICAgIDxleGlmOlBpeGVsWURpbWVuc2lvbj41MDwvZXhpZjpQaXhlbFlEaW1lbnNpb24+CiAgICAgICAgIDx0aWZmOlJlc29sdXRpb25Vbml0PjI8L3RpZmY6UmVzb2x1dGlvblVuaXQ+CiAgICAgICAgIDx0aWZmOllSZXNvbHV0aW9uPjE0NDwvdGlmZjpZUmVzb2x1dGlvbj4KICAgICAgICAgPHRpZmY6WFJlc29sdXRpb24+MTQ0PC90aWZmOlhSZXNvbHV0aW9uPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4Kk+EICwAABp5JREFUWAmtV1tsFGUU/mZ29tYtvdB2lxYsVwEpoEGjiCJ35B4jIT4YeUAT0QejITFoNAYIGg0Qhagx+mD0RdQXS5SUaxBISYgIEQQREUqve+l2t93ubXbG78xSKMsOxYST3Z2df875z/ef+yi4lZRnl9Yaa1bUYsbUctxX54XmUG7l+J93es5ES3sSp/6I4buf2tC4v0vlFubANjd2HznS+eDG9ZNOP7eyDhVlzoHn9/Ta3ZPB7j3t2PbppQnXgul/ZHMLwKg6z4ufbZ321ZI5/uIKhUvlj0ng8uE3x5NZfxQFKs+kynPh4z2MPF/xzYDGA114ffO5Ua2tyTYRUXdtmZp7+fnRxfnJkUjmcOJUFM2/xRDu1pFMG0j0mwSR1+f1KCjxKijzOTB9ig9zZlZhRI3bAlt8U2DX1/9iw+Y/FWX1slqTp0dleXGzZ7IG3ttxCd/8mIXLBUwYY2KEX6WbVLhdigUi3pdDpNvAtQ4TwbCKhokmtr9bj4bJZbRGcQjRWBbrNpzp1QjAVrmYNEdztrTr6O1TMH60gfqRKoZXaBjmUwlItVxR4lXhdOYwtl7B5AlevL8rjuZTPWiYUp53RxEMcuCVi/zDtBnTyGRHdKXXp2Hrm2Ow4IkITp9L4OJlHWfOpdGfUmBcP52H1i4rBWY/5sYzSwJo3BdHa2fGbtcb63NnVUOrZ6rZkaRQ88kIQpEM07IMC2dXw8Fgk/UsXWNKNJLcLgfcblrEqaKf8VJZoeLAryksnduNR6ZXWDLFdIhuJXN5eX6XQg5G9veN7Xj7wyhSadDEQPkwk+YHXabA51Pg1CSGgaxuop9B2RMz0c1vKKIikxU+Ezs3B7B4LrNLsqYIaUXW8ks07+HmOBommXjjpRHoDGUggSNZEI7qiPcaSKauW8CtYFSdAzOmaQToZIBqqKp0YvsXXTh4LIrFT9XYqrEFkM4Y6ArnMGaUE48+VAmv1wFFTiw65Ts418UQN+oA//O0vb06qqtC+PtKFmmmrZsBW4xsAbicCqbc72L6pXH2wnmMrJPUo6+ZeqUlKoaVOujzvAsyWSpkKiaSBjIZE339Bq605HD2ooJX17ptlQsg+xjg3sFwGgePh3G1LY3LLWm0tjPfo6ACCcKbWSCV0Mmj+EqAUh+YKQpdYOK1deVYsdCPQLV9UbIHYMHjD5vRnqZO6Ay0p+fUsALqVmUUsxriBpIAkEzw0U0aM2H9WxdRWqriy48egGX4PJvFW/hj6wKLUQTpz6YjUbR26Fg2z4+aKjeskMpbnwCdUEsmQnFNtkQSof0MTgOTxrmssLCrhANA7gxAuKjIwygPhZlqugeecqluLDJaJVT3VCiemVQ+lXz5rfo7LiAcyREo81YakxWxA+puvw4NgDKSVj3xFHqzE+Ef8Q4BSBeiw5XC/qEj1hMjrzQnB5/frrBwpXhuDObiKeoCLvodiEQifMKAUmmF25SLUIo8UfISgGforUXirrhqA26r6wWD3ZYSESxOCXQFY1aPqBrO1nmH4BuQvysAgSoXHA4V4XCMcn0DsrdfjRg6OuPQWLD8lLkbGhoAG05lhcvK72QyQf8LiOJk6lECSLAeKJaMNTEVZ72xehcApAlpqORs0deXhJkTN9iQEWEApi3eslLG9z1xATfxeTXUVKvoDKYAPWyjnfqyIdb9LHklCJkF9wQA1UnNr65U0d6Vhp6xjwE9E6YFcpwH2Sdsmk8hejWr2wxtgzgVdjoZu7qCBlIpNnobSiZ7rSJUF3BCGdq5nCMMqC3tNOtQxIIik29X2EA02mbDzUk5EUd3jwwt9L+05yFIdGu/n41hfD2r2p2IxWhsvQcdwQwONv2CtbVlLMMTWIxknKOjzSRyyXM4cvgEQTpYuOy732A1h9hptd0cu+bPqiLqO+Qtu96KBX7sPRTHpm3XcPjYDpSXCX/ezqaZQyye5XtDDssXaJj3eFV+YBmsreB/hG9Jjfs62dTZzz7Z1KC/8sKYApaCW+q6cq0fB46Gcf5S0pqWshxEpE1L4an1a3h4mg9L5/tRLVVwiNDa8eVlbPzgfN5RdTXeJ3dubTi6amGgQGvBrRyY7jBpEYOKDRYpGYyl6WmaCkVeZAePagXiA7c//Nwub0XLOkPpvUxWoLdfbzl+Mnre4cCaSeNK2X6t5QH+m1fJa1HIi7wLyojuoFK5ytpQeS8vp59/exVbPv5rNYfcPSJiycmf66QuXxBIrVoUcM6lH+/V6/nVtiQk4MTnTUdCErns53n6D8NVlrYwlIC/AAAAAElFTkSuQmCC"/></span></a>
+
+
+
+<span class="pill dirty" id="pillDirty" style="display:none;">Edited</span>
+</div>
+<div class="s">Standalone editor for NI Kontrol S-Series MK3 MIDI templates (.kmt)</div>
+</div>
+<div class="toolbar">
+<div class="group" style="flex:1;">
+<div class="field" style="flex:1; min-width:260px;">
+<label class="small">Template name</label>
+<input id="templateName" placeholder="e.g. RedShift6" type="text"/>
+</div>
+<div class="field" style="width:170px;">
+<label class="small">MIDI out preference</label>
+<select id="midiOutPref">
+<option value="">(none)</option>
+<option value="Global">Global</option>
+<option value="USB">USB</option>
+<option value="MIDI">MIDI (DIN)</option>
+<option value="Dual">Dual (USB+DIN)</option>
+</select>
+</div>
+<div class="field" style="width:210px;">
+<label class="small">Hide template name</label>
+<label class="toggle"><input id="hideTemplateName" type="checkbox"/>hide on display</label>
+</div>
+</div>
+<div class="group tight">
+<button class="btn primary" id="btnImport" data-help="Import a .kmt template file from disk. All pages, knobs and buttons will be loaded.">Import .kmt</button>
+<button class="btn" id="btnExport" data-help="Export template as .kmt file. If the MIDI Library has items, a separate CC library .json is also saved.">Export .kmt</button>
+<button class="btn" id="btnArtwork" data-help="Add or edit the artwork banner image shown on the keyboard display (firmware 1.8+). The image is cropped to exactly 1280×212 px.">Artwork…</button>
+<button class="btn ghost" id="btnNew" data-help="Create a new empty template with default knob and button assignments.">New</button>
+</div>
+</div>
+</header>
+<main>
+<section class="panel side">
+<div class="ph">
+<div class="h">Pages</div>
+<div class="row"><button class="btn small" id="btnAddPage" data-help="Add a new page with 8 knobs + 8 buttons. You can have up to 16 pages per template.">+ Page</button></div>
+</div>
+<div class="pc">
+<div class="hint" style="margin-bottom:12px">Drag &amp; drop swaps slots (8 knobs + 8 buttons per page). Alt+click a field label resets it to default.</div>
+<div class="pages" id="pagesList"></div>
+<div class="section" style="border-top:1px solid var(--line); padding-top:12px; margin-top:12px">
+<div class="sectTitle">Performance</div>
+<button class="btn" id="btnPerf" data-help="Edit Pitch wheel, Mod wheel, Touchstrip and Keyzone MIDI assignments." style="width:100%">Pitch/Mod/Touchstrip/Keyzone</button>
+</div>
+
+</section>
+<section class="panel preview">
+<div class="ph">
+<div class="h">Preview</div>
+<div class="row"><span class="pill" id="pillSel">no selection</span></div>
+</div>
+<div class="pc">
+<div class="banner">
+<div class="img" id="bannerImg"></div>
+<div class="ov">
+<div class="tt" id="bannerTitle">—</div>
+<div class="ss"><span class="kbd" id="bannerPage">Page 1</span></div>
+</div>
+</div>
+<div class="sectTitle knobs-title">Knobs (8)</div>
+<div class="grid knobs" id="knobsGrid"></div>
+<div class="sectTitle buttons-title">Buttons (8)</div>
+<div class="grid buttons" id="buttonsGrid"></div>
+</div>
+</section>
+<section class="panel inspector">
+<div class="ph">
+<div class="tabs" role="tablist" aria-label="Right panel">
+  <button class="tab active" type="button" data-tab="inspector">Inspector</button>
+  <button class="tab" type="button" data-tab="library">MIDI Library</button>
+</div>
+<div class="row"><button class="btn small" id="btnResetSlot" data-help="Reset the selected slot to its default CC value and behaviour.">Reset slot</button></div>
+</div>
+<div class="pc">
+<div class="tabPane active" id="paneInspector">
+<div id="inspector"></div>
+
+</div>
+<div class="tabPane" id="paneLibrary">
+<div class="midiLib" id="midiLib">
+  <!-- Import toolbar -->
+  <div class="mlHead">
+    <div class="mlBtns" style="width:100%;flex-wrap:wrap">
+      <button class="btn sm" id="btnLibImportJson" data-help="Import a JSON file with CC parameters (fields: name, cc, min, max). The imported items appear in the list below and can be dragged onto knobs or buttons." title="Import JSON (name/cc/min/max)">JSON</button>
+      <button class="btn sm" id="btnLibImportPdf" data-help="Scan a PDF manual for MIDI CC implementation tables. Set the Start/End page range to target only the MIDI section." title="Scan PDF manual for MIDI CC parameters">PDF Scan</button>
+      <button class="btn sm ghost" id="btnLibAddManual" data-help="Manually add a single CC parameter to the library by entering a name, CC number and value range." title="Add CC parameter manually">+ Add</button>
+      <button class="btn sm ghost" id="btnLibClear" data-help="Remove all items from the MIDI Library. This does not affect the template assignments." title="Clear all items">Clear</button>
+    </div>
+  </div>
+  <!-- Page range filter -->
+  <div class="mlPageRange">
+    <label class="small">Pages</label>
+    <input type="number" id="mlPageStart" data-help="First page to scan in the PDF. Set this to the page where the MIDI implementation section starts." min="1" value="1" title="First page to scan"/>
+    <span class="mlPageRangeSep">–</span>
+    <input type="number" id="mlPageEnd" data-help="Last page to scan in the PDF. Set this to the last page of the MIDI CC table." min="1" value="999" title="Last page to scan"/>
+    <label class="small" style="color:var(--muted);font-size:10px">Start / End</label>
+  </div>
+  <!-- Status -->
+  <div class="mlAiStatus" id="mlAiStatus" style="display:none"></div>
+  <!-- Manual add form -->
+  <div class="mlAddForm" id="mlAddForm" style="display:none">
+    <div class="mlAddRow">
+      <div class="field" style="flex:2"><label class="small">Name</label><input type="text" id="mlAddName" placeholder="Filter Cutoff"/></div>
+      <div class="field" style="flex:1"><label class="small">CC #</label><input type="number" id="mlAddCc" min="0" max="127" value="74"/></div>
+      <div class="field" style="flex:1"><label class="small">Min</label><input type="number" id="mlAddMin" min="0" max="127" value="0"/></div>
+      <div class="field" style="flex:1"><label class="small">Max</label><input type="number" id="mlAddMax" min="0" max="127" value="127"/></div>
+    </div>
+    <button class="btn sm primary" id="btnAddItemConfirm" style="width:100%;margin-top:6px">Add item</button>
+  </div>
+  <!-- List -->
+  <div class="mlBody" id="midiLibBody">
+    <div class="mlHint" id="midiLibHint">Drop a PDF or JSON here, or use PDF Scan / JSON.</div>
+    <div class="mlList" id="midiLibList" aria-label="MIDI CC list"></div>
+  </div>
+  <input type="file" accept=".json,application/json" id="fileLibJson" hidden />
+  <input type="file" accept="application/pdf" id="fileLibPdf" hidden />
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer>
+<div class="status" id="status">Ready.</div>
+<div class="footerCopy">© Patronix</div>
+<div class="footerHelp" id="footerHelp"></div>
+<input accept=".kmt,application/json" id="fileImport" style="display:none" type="file"/>
+<input accept="image/*" id="fileArtwork" style="display:none" type="file"/>
+</footer>
+</div>
+<div class="modalBack" id="artModal">
+<div class="modal">
+<div class="mh">
+<div class="h">Artwork (exact 1280×212, no distortion)</div>
+<div class="row">
+<button class="btn small" id="btnPickArtTop">Load image…</button>
+<button class="btn small" id="btnCloseArt">Close</button>
+</div>
+</div>
+<div class="mb">
+<div class="artViewWrap">
+
+<div class="cropArea view-fit" id="cropArea">
+<!-- CRITICAL: internal canvas resolution is exactly 1280×212 -->
+<canvas height="212" id="cropCanvas" width="1280"></canvas>
+</div>
+</div>
+<div class="artControls">
+<div class="artControlsGrid">
+
+<div class="cardish">
+<div class="sectTitle">Position</div>
+<label class="small">Zoom</label>
+<input id="zoomRange" max="6.0" min="0.2" step="0.01" type="range" value="1.0"/>
+<button class="btn small" id="btnArtReset" style="width:100%; margin-top:8px">Reset position</button>
+<div class="hint" style="margin-top:8px">Drag in the canvas to position. Export uses the exact same composition (no distortion).</div>
+</div>
+</div>
+</div>
+<div class="mf">
+<div class="status">Firmware 1.8+ required for artwork.</div>
+<div class="row">
+<button class="btn danger" id="btnClearArt">Remove</button>
+<button class="btn primary" id="btnApplyArt">Apply</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+(() => {
+  const APP = {
+    version:"1.7.9",
+    build: new Date().toISOString().slice(0,19).replace("T"," "),
+    dataVersion: "1",
+    changelog: [
+                        "1.7.9 — Fix: preview button height is now driven by --btn-h (JS constant set to 83).",
+"1.7.3 — Preview sizing constants set (knob/button/banner/fonts/pill height).",
+            "1.7.2 — UI: removed duplicate CC/CH chip in slot cards; Program Change shows channel.",
+            "1.7.0 — Performance: Touchstrip + Modwheel support CC/Pitch/PC types + range; Pitchwheel min/max range; Knobs rond in preview; pills uitgelijnd; copyright footer.",
+            "1.6.3 — Inspector: removed 0-based channel hint to free space.",
+"1.6.2 — Hotfix: fixed broken APP.changelog string (SyntaxError).",
+      "1.6.1 — Inspector breder/Preview smaller; Pill hoogte-uitlijning fix (alle chips via .sub span); Footer help-tooltip systeem; data-help op alle knoppen/velden.",
+      "1.6.0 — Knobs: Relative + Relative Offset modes met step size. Buttons: Trigger + Incremental modes (met step + wrap). Alle 6 display modes (incl. Bipolar 50, Volume dB). Program Change # + Note # velden in Inspector. Uniforme pill-hoogte in preview + inspector. Select inputs minder hoog.",
+      "1.5.6 — UI: BMAC beker-icoon (png) in header; UX: alle pills in slots hebben gelijke hoogte.",
+      "1.5.5 — Fix: buttons Fixed value toont als fixed i.p.v. toggle 0/0; UI: Buy me a coffee pill naast versie.",
+      "1.5.4 — UX: klik op knob/button slot springt naar Inspector als MIDI Library tab actief is.",
+      "1.5.3 — UI: kolomkoppen Pages/Inspector/MIDI Library 52px gelijk aan Preview.",
+      "1.5.2 — Layout: preview kolom smaller; Pages + Inspector breder.",
+      "1.4.3 — PDF scanner herschreven: Type-kolom detectie, geen dubbele functies, geen syntax errors. VCF: Cutoff en alle CC params correct.",
+      "1.4.1 — Fix: drag & drop van MIDI Library naar slots werkt nu correct (child pointer-events, dragover getData bug).",
+      "1.4.0 — AI MIDI Scanner: Claude AI extraheert CC-parameters uit PDF/tekst manuals. Slimmere regex tabelherkenning. Handmatig items toevoegen. Bredere JSON-import ondersteuning.",
+      "1.3.0 — Fix: Inspector + MIDI Library kolom altijd zichtbaar als derde kolom (was soms afwezig). Layout: 3 kolommen 260/1fr/300px.",
+      "1.2.4 — Responsive: Right panel (Inspector/Library) visible on narrow screens (no longer hidden at <980px).",
+      "1.2.3 — Right panel tabs: Inspector + MIDI Library (scrollable).",
+      "1.2.2 — MIDI Library moved to Pages column (always visible; Preview stays no-scroll).",
+      "1.2.0 — MIDI Library: import JSON (and PDF via PDF.js), drag & drop to assign CC/range/label to slots.",
+      "1.1.4 — Inspector label UX: focus selects text; typing enables Custom label; toggle preserves typed label.",
+      "1.1.3 — Fix: Art modal footer (Apply/Remove) stays inside the window.",
+      "1.0.7 — Art modal: remove duplicate Performance/template block; fix Load/Remove layout; slot header CC/CH next to label; Custom label toggle resets label when unchecked.",
+      "1.0.6 — Art modal: fix Load/Remove handlers (no close on remove, clears preview); guard missing button bindings.",
+      "1.0.4 — UI cleanup (remove build/date + data pill, remove Bitwig tip), English translation, artwork modal fit-only (no crop selection UI, no 1:1), footer kept inside modal."
+    ]
+  };
+
+  const el = (s) => document.querySelector(s);
+
+  const els = (s) => Array.from(document.querySelectorAll(s));
+  const safeJsonParse = (txt)=>{ try{ return JSON.parse(txt);}catch(e){ return null; } };
+
+  // UI state (declared early because some modules attach to it before full UI wiring)
+  let ui = { page:0, sel:null, drag:null };
+  let slotClipboard = null; // {kind, data} voor copy/paste
+
+  // MIDI Library (CC list) state
+  ui.midiLib = { items: [], collapsed: false };
+
+  // ============================================================
+  //  MIDI LIBRARY — v1.5.0
+  // ============================================================
+
+  // --- State & helpers ---
+  function normalizeMidiItem(obj){
+    if(!obj || typeof obj!=="object") return null;
+    const name = (obj.name ?? obj.label ?? obj.parameter ?? obj.Parameter ?? obj.Name ?? "").toString().trim();
+    const cc = Number(obj.cc ?? obj.CC ?? obj.midi_cc_number ?? obj.midiCC ?? obj.controller ?? obj.Controller ?? obj.number ?? "");
+    if(!Number.isFinite(cc) || cc<0 || cc>127) return null;
+    const rawMin = obj.min ?? obj.Min ?? obj.from ?? obj.minimum ?? 0;
+    const rawMax = obj.max ?? obj.Max ?? obj.to ?? obj.maximum ?? 127;
+    let min = Number.isFinite(Number(rawMin)) ? Number(rawMin)|0 : 0;
+    let max = Number.isFinite(Number(rawMax)) ? Number(rawMax)|0 : 127;
+    if(min>max){ const t=min; min=max; max=t; }
+    min=Math.max(0,Math.min(127,min));
+    max=Math.max(0,Math.min(127,max));
+    return { name: name || ("CC "+cc), cc: Math.max(0,Math.min(127,cc|0)), min, max };
+  }
+
+  function setMidiLib(items){
+    ui.midiLib.items = items.slice(0,500);
+    renderMidiLib();
+  }
+
+  function renderMidiLib(){
+    const list = el("#midiLibList");
+    const hint = el("#midiLibHint");
+    const count = el("#mlCount");
+    if(!list || !hint) return;
+    list.innerHTML="";
+    const items = ui.midiLib.items || [];
+    if(count) count.textContent = items.length ? `(${items.length})` : "";
+    hint.style.display = items.length ? "none" : "block";
+    items.forEach((it,i)=>{
+      const row=document.createElement("div");
+      row.className="mlItem";
+      row.draggable=true;
+      row.title="Drag to a knob or button slot";
+      row.addEventListener("dragstart",(e)=>{
+        e.dataTransfer.effectAllowed="copy";
+        e.dataTransfer.setData("application/x-midiitem", JSON.stringify(it));
+        e.dataTransfer.setData("text/plain", `${it.name}\tCC${it.cc}\t${it.min}-${it.max}`);
+      });
+
+      const left=document.createElement("div"); left.className="mlLeft";
+      const nm=document.createElement("div"); nm.className="mlName"; nm.textContent=it.name;
+      const meta=document.createElement("div"); meta.className="mlMeta";
+      const p1=document.createElement("span"); p1.className="pill"; p1.textContent=`CC ${it.cc}`;
+      const p2=document.createElement("span"); p2.className="pill"; p2.textContent=`${it.min}–${it.max}`;
+      meta.appendChild(p1); meta.appendChild(p2);
+      left.appendChild(nm); left.appendChild(meta);
+
+      const actions=document.createElement("div"); actions.className="mlActions";
+      const del=document.createElement("button");
+      del.className="mlEdit"; del.textContent="×"; del.title="Remove item";
+      del.onclick=(ev)=>{ ev.stopPropagation(); ui.midiLib.items.splice(i,1); renderMidiLib(); };
+      actions.appendChild(del);
+
+      row.appendChild(left);
+      row.appendChild(actions);
+      list.appendChild(row);
+    });
+  }
+
+  // --- Betere regex-extractor voor tekst uit PDF/plaintext ---
+  function extractMidiItemsFromText(txt){
+    const lines = txt.split(/\r?\n/).map(s=>s.replace(/\s{2,}/g," ").trim()).filter(Boolean);
+    const out=[];
+    const seen=new Set();
+    // Patterns:
+    // "Filter Cutoff  CC 74  0–127"
+    // "Filter Cutoff  74  0 to 127"
+    // "Filter Cutoff: CC#74 (0-127)"
+    // "74  Filter Cutoff  0  127"  (number-first tables)
+    const pats = [
+      // name CC-number min-max
+      /^(.+?)\s+CC\s*#?\s*(\d{1,3})\s+(\d{1,3})\s*[-–to]+\s*(\d{1,3})/i,
+      /^(.+?)\s+CC\s*#?\s*(\d{1,3})/i,
+      // number-first: "74  Filter Cutoff  0  127"
+      /^(\d{1,3})\s+(.+?)\s+(\d{1,3})\s+(\d{1,3})$/,
+      /^(\d{1,3})\s+(.+?)$/,
+    ];
+    for(const line of lines){
+      let name="", cc=-1, min=0, max=127;
+      let m;
+      if((m=line.match(pats[0]))){ name=m[1].trim(); cc=+m[2]; min=+m[3]; max=+m[4]; }
+      else if((m=line.match(pats[1]))){ name=m[1].trim(); cc=+m[2]; }
+      else if((m=line.match(pats[2]))){ cc=+m[1]; name=m[2].trim(); min=+m[3]; max=+m[4]; }
+      else if((m=line.match(pats[3]))){ cc=+m[1]; name=m[2].trim(); }
+      if(cc<0||cc>127) continue;
+      name=name.replace(/[:\-–,]+\s*$/,"").replace(/^[:\-–,\s]+/,"").trim();
+      if(!name) name="CC "+cc;
+      if(min>max){ const t=min; min=max; max=t; }
+      const key=`${cc}|${name.toLowerCase()}`;
+      if(seen.has(key)) continue;
+      seen.add(key);
+      out.push({name,cc,min,max});
+    }
+    out.sort((a,b)=>(a.cc-b.cc)||a.name.localeCompare(b.name));
+    return out;
+  }
+
+  // --- JSON import ---
+  async function importMidiJsonFile(file){
+    const txt = await file.text();
+    // Try as JSON first, then as line-by-line text
+    let items=[];
+    const j = safeJsonParse(txt);
+    if(j){
+      const arr = Array.isArray(j) ? j : (Array.isArray(j.items)? j.items : (Array.isArray(j.controllers)? j.controllers : Object.values(j).filter(Array.isArray).flat()));
+      items = arr.map(normalizeMidiItem).filter(Boolean);
+    }
+    if(!items.length){
+      // try plain text
+      items = extractMidiItemsFromText(txt);
+    }
+    if(!items.length){ setStatus(`<span class="bad">✕</span> No CC items found in file.`); return; }
+    const merged = mergeMidiLib(items);
+    setStatus(`<span class="ok">✓</span> MIDI Library: ${merged} items loaded.`);
+  }
+
+  // --- PDF scan (regex, offline) ---
+  function loadScript(url){
+    return new Promise((resolve,reject)=>{
+      const s=document.createElement("script");
+      s.src=url; s.async=true;
+      s.onload=()=>resolve(true);
+      s.onerror=()=>reject(new Error("Failed to load "+url));
+      document.head.appendChild(s);
+    });
+  }
+  async function ensurePdfJs(){
+    if(window.pdfjsLib) return true;
+    const base="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+    await loadScript(base+"pdf.min.js");
+    if(!window.pdfjsLib) throw new Error("PDF.js not available");
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = base+"pdf.worker.min.js";
+    return true;
+  }
+
+  // Plain text extraction (regex fallback)
+  async function extractPdfText(file, pageRange={start:1,end:999}){
+    await ensurePdfJs();
+    const buf = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({data:buf}).promise;
+    let text = "";
+    for(let p = Math.max(1,pageRange.start); p <= Math.min(pdf.numPages, pageRange.end); p++){
+      const page = await pdf.getPage(p);
+      const tc   = await page.getTextContent();
+      const byY  = {};
+      for(const item of tc.items){
+        const y = Math.round(item.transform[5]);
+        if(!byY[y]) byY[y] = [];
+        byY[y].push({ x: item.transform[4], str: item.str });
+      }
+      const ys = Object.keys(byY).map(Number).sort((a,b) => b - a);
+      for(const y of ys){
+        text += byY[y].sort((a,b)=>a.x-b.x).map(i=>i.str).join("  ") + "\n";
+      }
+    }
+    return text;
+  }
+
+  function parseCcRange(s){
+    if(!s) return [0, 127];
+    const m = s.trim().match(/^(\d+)\s*[-\u2013]\s*(\d+)$/);
+    if(m){
+      let mn = Math.max(0, Math.min(127, parseInt(m[1], 10)));
+      let mx = Math.max(0, Math.min(127, parseInt(m[2], 10)));
+      if(mn > mx){ const t=mn; mn=mx; mx=t; }
+      return [mn, mx];
+    }
+    return [0, 127];
+  }
+
+  // Extract words with x/y positions from a PDF.js page
+  async function getPageWords(pdfPage){
+    const tc = await pdfPage.getTextContent();
+    const byY = {};
+    for(const item of tc.items){
+      if(!item.str || !item.str.trim()) continue;
+      const y = Math.round(item.transform[5] / 2) * 2;
+      if(!byY[y]) byY[y] = [];
+      const words = item.str.trim().split(/\s+/);
+      let x = item.transform[4];
+      const charW = item.width / (item.str.length || 1);
+      for(const word of words){
+        if(word) byY[y].push({ text: word, x });
+        x += (word.length + 1) * charW;
+      }
+    }
+    // Top-to-bottom (PDF y-axis is inverted)
+    return Object.keys(byY).map(Number).sort((a,b) => b - a)
+      .map(y => byY[y].sort((a,b) => a.x - b.x));
+  }
+
+  // Detect if a row is a MIDI CC table header and return column info
+  function detectHeader(row){
+    const texts = row.map(w => w.text.toLowerCase());
+    const hasParam = texts.some(t => t === 'parameter' || t === 'name');
+    const ccCount  = texts.filter(t => t === 'cc').length;
+    const hasMsb   = texts.includes('msb');
+    if(!hasParam || ccCount < 1) return null;
+
+    const paramCell = row.find(w => w.text.toLowerCase() === 'parameter' || w.text.toLowerCase() === 'name');
+    const typeCell  = row.find(w => w.text.toLowerCase() === 'type');
+    const ccCells   = row.filter(w => w.text === 'CC');
+    const rangeCells= row.filter(w => w.text.toLowerCase() === 'range');
+    const msbCells  = row.filter(w => w.text.toLowerCase() === 'msb');
+
+    // Determine CC column x:
+    // Format A (Redshift): "Parameter Type CC NRPN MSB LSB NRPN range CC range"
+    //   -> 2 x "CC": first=CC number col, last=CC range col
+    // Format B (Digitakt): "Parameter CC MSB CC LSB NRPN MSB NRPN LSB"
+    //   -> "CC MSB" = first CC number, "CC LSB" = second CC (fine-tune)
+    //   -> No separate range column
+    
+    let colNameX  = paramCell ? paramCell.x : -1;
+    let colTypeX  = typeCell  ? typeCell.x  : -1;
+    let colCcX    = -1;
+    let colRangeX = -1;
+    let hasTypeCol = colTypeX > 0;
+    let hasRangeCol = rangeCells.length > 0;
+
+    if(hasRangeCol && ccCells.length >= 2){
+      // Format A: first CC = number col, last CC = part of "CC range" header
+      colCcX    = ccCells[0].x;
+      colRangeX = ccCells[ccCells.length - 1].x;
+    } else if(ccCells.length >= 1){
+      // Format B: first CC = CC MSB col, no separate range col
+      colCcX = ccCells[0].x;
+      colRangeX = -1;
+    }
+
+    if(colCcX < 0) return null;
+
+    return { colNameX, colTypeX, colCcX, colRangeX, hasTypeCol, hasRangeCol };
+  }
+
+  // Parse one page using detected column schema
+  function parsePage(rows, headerIdx, schema, seen, allItems){
+    const { colNameX, colTypeX, colCcX, colRangeX, hasTypeCol } = schema;
+    const T = 22; // x-tolerance
+    const typeBoundary = colTypeX > 0 ? colTypeX : colCcX;
+    let pendingName = "";
+
+    for(let ri = headerIdx + 1; ri < rows.length; ri++){
+      const row = rows[ri];
+      if(!row.length) continue;
+
+      // Skip page-number-only rows (single token that's a number > 127)
+      if(row.length === 1 && /^\d+$/.test(row[0].text) && parseInt(row[0].text) > 127) continue;
+
+      const nameWs  = row.filter(w => w.x < typeBoundary - T);
+      const typeWs  = colTypeX > 0 ? row.filter(w => Math.abs(w.x - colTypeX) <= T) : [];
+      const ccWs    = row.filter(w => Math.abs(w.x - colCcX) <= T);
+      const rangeWs = colRangeX > 0 ? row.filter(w => w.x >= colRangeX - T) : [];
+
+      const nameStr  = nameWs.map(w => w.text).join(' ').trim();
+      const typeStr  = typeWs.map(w => w.text).join('').trim();
+      const ccStr    = ccWs.map(w => w.text).join('').trim();
+      const rangeStr = rangeWs.map(w => w.text).join(' ').trim();
+
+      if(hasTypeCol){
+        // FORMAT A: Type column present (Redshift style)
+        const hasType = typeStr === 'Part' || typeStr === 'Global';
+        if(hasType){
+          let fullName = (pendingName + ' ' + nameStr).trim();
+          pendingName = '';
+          fullName = fullName.replace(/\s+(Part|Global)\s*$/i, '').trim();
+          if(!ccStr || !/^\d+$/.test(ccStr)) continue;
+          const cc = parseInt(ccStr, 10);
+          if(cc < 0 || cc > 127) continue;
+          const [mn, mx] = parseCcRange(rangeStr);
+          const key = cc + '|' + fullName.toLowerCase();
+          if(seen.has(key)) continue;
+          seen.add(key);
+          allItems.push({ name: fullName, cc, min: mn, max: mx });
+        } else {
+          if(nameStr) pendingName = (pendingName + ' ' + nameStr).trim();
+        }
+      } else {
+        // FORMAT B: No type column (Digitakt style)
+        // A data row has a number 0-127 in the CC column
+        // A section header has NO number in the CC column
+        const ccNum = parseInt(ccStr, 10);
+        const hasCc = ccStr && /^\d+$/.test(ccStr) && ccNum >= 0 && ccNum <= 127;
+
+        if(hasCc){
+          // Real CC row
+          let fullName = (pendingName + ' ' + nameStr).trim();
+          pendingName = '';
+          if(!fullName) continue;
+          const [mn, mx] = parseCcRange(rangeStr); // will be [0,127] for Digitakt
+          const key = ccNum + '|' + fullName.toLowerCase();
+          if(seen.has(key)) continue;
+          seen.add(key);
+          allItems.push({ name: fullName, cc: ccNum, min: mn, max: mx });
+        } else {
+          // No CC in CC column:
+          // Could be: section header, NRPN-only row, or name continuation
+          // Heuristic: if nameStr looks like ALL-CAPS section title -> reset pending
+          const isHeader = nameStr && nameStr === nameStr.toUpperCase() && nameStr.length > 1 && !/^\d/.test(nameStr);
+          if(isHeader){
+            pendingName = ''; // reset - new section
+          } else if(nameStr && !ccStr){
+            // Possible multiline name continuation (no data at all on this row)
+            pendingName = (pendingName + ' ' + nameStr).trim();
+          } else {
+            // Has some data but no valid CC -> NRPN-only, discard
+            pendingName = '';
+          }
+        }
+      }
+    }
+  }
+
+  // Main smart scanner
+  async function extractPdfTableItems(file, pageRange={start:1,end:999}){
+    await ensurePdfJs();
+    const buf = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({data:buf}).promise;
+    const allItems = [];
+    const seen = new Set();
+
+    // Two-pass: first find which pages have MIDI CC tables
+    // by scanning for header rows, then parse those pages
+    let activeSchema = null;
+
+    for(let p = Math.max(1,pageRange.start); p <= Math.min(pdf.numPages, pageRange.end); p++){
+      const pdfPage = await pdf.getPage(p);
+      const rows = await getPageWords(pdfPage);
+
+      // Check if this page has a header row (or continues a previous table)
+      let headerIdx = -1;
+      let schema = null;
+
+      for(let ri = 0; ri < Math.min(rows.length, 15); ri++){
+        const h = detectHeader(rows[ri]);
+        if(h){ headerIdx = ri; schema = h; break; }
+      }
+
+      if(schema){
+        activeSchema = schema; // remember for next pages
+        parsePage(rows, headerIdx, schema, seen, allItems);
+      } else if(activeSchema){
+        // No header on this page but previous page had one:
+        // check if this page continues the table (starts with data rows)
+        // by seeing if the first non-empty, non-title row has a value at CC x position
+        let pageHasData = false;
+        for(let ri = 0; ri < Math.min(rows.length, 5); ri++){
+          const row = rows[ri];
+          const ccWs = row.filter(w => Math.abs(w.x - activeSchema.colCcX) <= 22);
+          const ccStr = ccWs.map(w=>w.text).join('').trim();
+          if(ccStr && /^\d+$/.test(ccStr)){
+            pageHasData = true; break;
+          }
+        }
+        if(pageHasData){
+          parsePage(rows, -1, activeSchema, seen, allItems);
+        } else {
+          activeSchema = null; // table ended
+        }
+      }
+    }
+
+    return allItems;
+  }
+
+  async function importMidiPdfFile(file){
+    showAiStatus("loading", "Scanning PDF\u2026");
+    let items = [];
+    const pageRange = getPageRange ? getPageRange() : {start:1,end:999};
+
+    // 1. Smart universal table scanner
+    try{
+      items = await extractPdfTableItems(file, pageRange);
+    }catch(e){
+      console.warn("Table scan error:", e);
+    }
+
+    if(items.length){
+      const merged = mergeMidiLib(items);
+      showAiStatus("ok", "\u2713 Table scan: " + merged + " CC parameters found.");
+      setStatus('<span class="ok">\u2713</span> PDF Tabel-scan: ' + merged + ' items.');
+      return;
+    }
+
+    // 2. Fallback: line-based regex
+    try{
+      const text = await extractPdfText(file, pageRange);
+      items = extractMidiItemsFromText(text);
+      if(!items.length){
+        showAiStatus("err", "No CC items found on pages "+pageRange.start+"\u2013"+pageRange.end+". Try different page numbers.");
+        return;
+      }
+      const merged = mergeMidiLib(items);
+      showAiStatus("ok", "\u2713 Regex scan: " + merged + " CC parameters found.");
+      setStatus('<span class="ok">\u2713</span> PDF Regex-scan: ' + merged + ' items.');
+    }catch(err){
+      console.error(err);
+      showAiStatus("err", "PDF scan failed. Try JSON import.");
+    }
+  }
+
+
+  
+
+  function showAiStatus(type,msg){
+    const el2=el("#mlAiStatus"); if(!el2) return;
+    el2.style.display="flex";
+    // loading wordt als 'ok' getoond (accent kleur), geen spinner nodig zonder AI
+    el2.className="mlAiStatus "+(type==="loading"?"ok":type);
+    el2.innerHTML = (type==="loading"?'<span class="mlSpinner"></span>':'')+"<span>"+msg+"</span>";
+    if(type==="ok"||type==="loading"||type==="err") setTimeout(()=>{ el2.style.display="none"; },6000);
+  }
+
+  function mergeMidiLib(newItems){
+    // Merge: add items not already present (by cc+name)
+    const existing = new Set(ui.midiLib.items.map(i=>`${i.cc}|${i.name.toLowerCase()}`));
+    let added=0;
+    for(const it of newItems){
+      const key=`${it.cc}|${it.name.toLowerCase()}`;
+      if(!existing.has(key)){ ui.midiLib.items.push(it); existing.add(key); added++; }
+    }
+    ui.midiLib.items.sort((a,b)=>(a.cc-b.cc)||a.name.localeCompare(b.name));
+    ui.midiLib.items = ui.midiLib.items.slice(0,500);
+    renderMidiLib();
+    return ui.midiLib.items.length;
+  }
+
+  // --- UI init ---
+  function getPageRange(){
+    const s = parseInt(el("#mlPageStart")?.value||"1",10)||1;
+    const e2 = parseInt(el("#mlPageEnd")?.value||"999",10)||999;
+    return { start: Math.max(1,s), end: Math.max(1,e2) };
+  }
+
+  function initMidiLibUi(){
+    const box = el("#midiLib");
+    if(!box) return;
+
+    // JSON import
+    el("#btnLibImportJson")?.addEventListener("click",()=>el("#fileLibJson").click());
+    el("#fileLibJson")?.addEventListener("change",(e)=>{ const f=e.target.files?.[0]; if(f) importMidiJsonFile(f); e.target.value=""; });
+
+    // PDF scan (wist eerst bestaande library)
+    el("#btnLibImportPdf")?.addEventListener("click",()=>el("#fileLibPdf").click());
+    el("#fileLibPdf")?.addEventListener("change",(e)=>{ const f=e.target.files?.[0]; if(f){ setMidiLib([]); importMidiPdfFile(f); } e.target.value=""; });
+
+    // Clear
+    el("#btnLibClear")?.addEventListener("click",()=>{ setMidiLib([]); setStatus('<span class="ok">✓</span> MIDI Library cleared.'); });
+
+    // Manual add form toggle
+    el("#btnLibAddManual")?.addEventListener("click",()=>{
+      const form=el("#mlAddForm");
+      if(form) form.style.display = form.style.display==="none" ? "block" : "none";
+    });
+    el("#btnAddItemConfirm")?.addEventListener("click",()=>{
+      const name=(el("#mlAddName")?.value||"").trim();
+      const cc=Number(el("#mlAddCc")?.value??74);
+      const min=Number(el("#mlAddMin")?.value??0);
+      const max=Number(el("#mlAddMax")?.value??127);
+      if(!name){ setStatus('<span class="warn">!</span> Please enter a name.'); return; }
+      const item=normalizeMidiItem({name,cc,min,max});
+      if(!item){ setStatus('<span class="bad">✕</span> Invalid CC number.'); return; }
+      mergeMidiLib([item]);
+      el("#mlAddName").value="";
+      setStatus('<span class="ok">✓</span> "'+item.name+'" toegevoegd.');
+    });
+
+    // Drop zone (PDF of JSON)
+    box.addEventListener("dragover",(e)=>{ e.preventDefault(); box.classList.add("drop"); e.dataTransfer.dropEffect="copy"; });
+    box.addEventListener("dragleave",()=> box.classList.remove("drop"));
+    box.addEventListener("drop",(e)=>{
+      e.preventDefault(); box.classList.remove("drop");
+      const files=e.dataTransfer.files;
+      if(!files||!files.length) return;
+      const f=files[0];
+      const isPdf=(f.type==="application/pdf")||f.name.toLowerCase().endsWith(".pdf");
+      if(isPdf){ setMidiLib([]); importMidiPdfFile(f); }
+      else{ importMidiJsonFile(f); }
+    });
+
+    renderMidiLib();
+  }
+
+
+  const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+  const deepClone = (o) => JSON.parse(JSON.stringify(o));
+  const safeInt = (v, def=0) => (Number.isFinite(Number(v)) ? Math.trunc(Number(v)) : def);
+  const fmtCh = (ch0) => (typeof ch0 === "number" ? String(ch0+1) : "");
+  const parseCh = (ch1) => clamp(safeInt(ch1,1),1,16)-1;
+
+  function setStatus(html){ el("#status").innerHTML = html; }
+  function digest(obj){
+    try{
+      const s = JSON.stringify(obj);
+      let h=0; for(let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i))>>>0;
+      return h.toString(16);
+    }catch{ return "0"; }
+  }
+  function stamp(){
+    const d=new Date(), p=(x)=>String(x).padStart(2,"0");
+    return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+  }
+
+  function makeKnob(cc=14, ch=0){
+    return {
+      custom_label: false,
+      display_mode: "unipolar_int",
+      label: `CC ${cc}`,
+      mapping: {
+        assignment: { cc: { midi_cc_number: cc, midi_channel: ch } },
+        behaviour: { absolute: { min: 0, max: 127 } }
+      }
+    };
+  }
+  function makeButton(cc=112, ch=0){
+    return {
+      color: "White",
+      custom_label: false,
+      label: `CC ${cc}`,
+      mapping: {
+        assignment: { cc: { midi_cc_number: cc, midi_channel: ch } },
+        behaviour: { toggle: { off: 0, on: 127 } }
+      }
+    };
+  }
+
+  // Knob behaviour mode detector
+  function knobBehType(knob){
+    const b=knob.mapping?.behaviour||{};
+    if(b.relative) return "relative";
+    if(b.relative_offset) return "relative_offset";
+    return "absolute";
+  }
+  function setKnobBeh(knob, t){
+    if(t==="absolute")        knob.mapping.behaviour = { absolute: { min: 0, max: 127 } };
+    else if(t==="relative")   knob.mapping.behaviour = { relative: { step: 1 } };
+    else if(t==="relative_offset") knob.mapping.behaviour = { relative_offset: { step: 1 } };
+  }
+  function makePage(ch=0){
+    return {
+      knobs: Array.from({length:8}, (_,i)=>makeKnob(14+i, ch)),
+      buttons: Array.from({length:8}, (_,i)=>makeButton(112+i, ch)),
+    };
+  }
+  function makeTemplate(){
+    return {
+      color: "",
+      hide_template_name: false,
+      image_data: "",
+      template_name: "New Template",
+      midi_output_preference: null,
+      keyboard_assignments: [{
+        color: "",
+        disable: false,
+        lower_key: 0,
+        midi_channel: 0,
+        priority: "plugin",
+        semitones_transpose: 0,
+        upper_key: 127,
+        velocity_curve: null
+      }],
+      wheel_assignments: {
+        Modulation: {
+          assignment: { cc: { midi_cc_number: 1, midi_channel: 0 } },
+          behaviour: { range: { min: 0, max: 127 } }
+        },
+        Pitchbend: {
+          assignment: { pitch_bend: { midi_channel: 0 } },
+          behaviour: { range: { min: 0, max: 16383 } }
+        }
+      },
+      touchstrip_assignments: {
+        TouchStrip: {
+          assignment: { cc: { midi_cc_number: 11, midi_channel: 0 } },
+          behaviour: { range: { min: 0, max: 127 } }
+        }
+      },
+      pedal_assignments: {
+        PedalAssign1: null,
+        PedalAssign2: null,
+        PedalExpression: {
+          pedal_continuous_configuration: {
+            configuration: { invert: false, swap_tip_ring: false },
+            mapping: {
+              assignment: { cc: { midi_cc_number: 11, midi_channel: 0 } },
+              behaviour: { range: { min: 0, max: 127 } }
+            }
+          }
+        },
+        PedalSustain: {
+          pedal_switch_configuration: {
+            configuration: { invert: false },
+            mapping_tip: {
+              assignment: { cc: { midi_cc_number: 64, midi_channel: 0 } },
+              behaviour: { gate: { off: 0, on: 127 } }
+            },
+            mapping_ring: {
+              assignment: { cc: { midi_cc_number: 65, midi_channel: 0 } },
+              behaviour: { gate: { off: 0, on: 127 } }
+            }
+          }
+        }
+      },
+      pages: [makePage(0), makePage(0)]
+    };
+  }
+
+  // For wheel/touchstrip top-level assignments (different structure from knob/button)
+  function perfAsgType(asg){
+    if(!asg) return "cc";
+    if(asg.cc) return "cc";
+    if(asg.pitch_bend) return "pitch_bend";
+    if(asg.program_change) return "program_change";
+    return "cc";
+  }
+  function perfGetCh(asg){
+    if(!asg) return 0;
+    if(asg.cc) return asg.cc.midi_channel ?? 0;
+    if(asg.pitch_bend) return asg.pitch_bend.midi_channel ?? 0;
+    if(asg.program_change) return asg.program_change.midi_channel ?? 0;
+    return 0;
+  }
+  function perfSetType(obj, t){
+    // obj = wheel/touchstrip assignment object {assignment, behaviour}
+    const ch = perfGetCh(obj.assignment);
+    const oldCC = obj.assignment?.cc?.midi_cc_number ?? 1;
+    const oldProg = obj.assignment?.program_change?.program ?? 0;
+    if(t==="cc"){
+      obj.assignment = { cc: { midi_cc_number: oldCC, midi_channel: ch } };
+      if(!obj.behaviour?.range) obj.behaviour = { range: { min:0, max:127 } };
+    } else if(t==="pitch_bend"){
+      obj.assignment = { pitch_bend: { midi_channel: ch } };
+      if(!obj.behaviour?.range) obj.behaviour = { range: { min:0, max:16383 } };
+    } else if(t==="program_change"){
+      obj.assignment = { program_change: { program: oldProg, midi_channel: ch } };
+      obj.behaviour = {};
+    }
+  }
+
+  function asgType(item){
+    const a=item?.mapping?.assignment||{};
+    if(a.cc) return "cc";
+    if(a.pitch_bend) return "pitch_bend";
+    if(a.note) return "note";
+    if(a.program_change) return "program_change";
+    return "cc";
+  }
+  function getCh0(item){
+    const a=item.mapping.assignment;
+    if(a.cc) return a.cc.midi_channel ?? 0;
+    if(a.pitch_bend) return a.pitch_bend.midi_channel ?? 0;
+    if(a.note) return a.note.midi_channel ?? 0;
+    if(a.program_change) return a.program_change.midi_channel ?? 0;
+    return 0;
+  }
+  function setCh0(item, ch0){
+    const a=item.mapping.assignment;
+    if(a.cc) a.cc.midi_channel = ch0;
+    if(a.pitch_bend) a.pitch_bend.midi_channel = ch0;
+    if(a.note) a.note.midi_channel = ch0;
+    if(a.program_change) a.program_change.midi_channel = ch0;
+  }
+  function getCC(item){ return item?.mapping?.assignment?.cc?.midi_cc_number ?? 0; }
+
+  function autoLabel(kind,item){
+    const t = asgType(item);
+    if(t==="cc") return `CC ${getCC(item)}`;
+    return (kind==="knob") ? "Knob" : "Button";
+  }
+  function setCC(item, cc){
+    if(!item.mapping.assignment.cc) item.mapping.assignment = { cc: { midi_cc_number: cc, midi_channel: 0 } };
+    item.mapping.assignment.cc.midi_cc_number = cc;
+  }
+  function setAsgType(item, t){
+    const ch0=getCh0(item);
+    const old=deepClone(item.mapping.assignment);
+    if(t==="cc"){
+      const cc=old.cc?.midi_cc_number ?? 1;
+      item.mapping.assignment = { cc: { midi_cc_number: cc, midi_channel: ch0 } };
+      // keep existing behaviour if already has absolute, else reset
+      if(!item.mapping.behaviour?.absolute) item.mapping.behaviour = { absolute: { min:0, max:127 } };
+    }else if(t==="note"){
+      const n=old.note?.note_number ?? 60;
+      item.mapping.assignment = { note: { note_number: n, midi_channel: ch0 } };
+      // For note buttons: use trigger behaviour by default
+      if(!item.mapping.behaviour?.trigger) item.mapping.behaviour = { trigger: { value: 127 } };
+    }else if(t==="program_change"){
+      const p=old.program_change?.program ?? 0;
+      item.mapping.assignment = { program_change: { program: p, midi_channel: ch0 } };
+      if(!item.mapping.behaviour?.trigger) item.mapping.behaviour = { trigger: { value: 0 } };
+    }
+  }
+  function buttonBehType(btn){
+    const b=btn.mapping?.behaviour||{};
+    if(b.gate) return "gate";
+    if(b.trigger) return "trigger";
+    if(b.incremental) return "incremental";
+    if(b.toggle){
+      if(b.toggle.on===b.toggle.off) return "fixed";
+      return "toggle";
+    }
+    return "toggle";
+  }
+  function setButtonBeh(btn, t){
+    if(t==="toggle")       btn.mapping.behaviour = { toggle: { off: 0, on: 127 } };
+    else if(t==="gate")    btn.mapping.behaviour = { gate: { off: 0, on: 127 } };
+    else if(t==="trigger") btn.mapping.behaviour = { trigger: { value: 127 } };
+    else if(t==="fixed")   btn.mapping.behaviour = { toggle: { off: 0, on: 0 } };
+    else if(t==="incremental") btn.mapping.behaviour = { incremental: { step: 1, wrap: true } };
+  }
+
+  let template = makeTemplate();
+  let baseline = digest(template);
+  let dirty=false;
+  // ui is declared earlier
+
+  function setDirty(flag){
+    dirty=flag;
+    el("#pillDirty").style.display = dirty ? "inline-flex" : "none";
+    document.title = dirty ? "● KMT Editor" : "KMT Editor";
+  }
+  function recomputeDirty(){ setDirty(digest(template)!==baseline); }
+  function setBaseline(){ baseline=digest(template); setDirty(false); }
+
+  function pageSummary(pg){
+    const a=(pg.knobs?.[0]?.label||"").trim(), b=(pg.knobs?.[1]?.label||"").trim();
+    return [a,b].filter(Boolean).slice(0,2).join(" · ") || "—";
+  }
+  function banner(){
+    const src=template.image_data||"";
+    el("#bannerImg").style.backgroundImage = src ? `url('${src}')` : "linear-gradient(135deg, rgba(122,162,255,.18), rgba(92,255,154,.10))";
+    el("#bannerTitle").textContent = template.hide_template_name ? "Template (name hidden)" : (template.template_name || "—");
+    el("#bannerPage").textContent = `Page ${ui.page+1}`;
+  }
+  function pillSel(){
+    const p=el("#pillSel");
+    if(!ui.sel){ p.textContent="no selection"; return; }
+    if(ui.sel.kind==="perf"){ p.textContent="Performance"; return; }
+    p.textContent = `${ui.sel.kind.toUpperCase()} · p${ui.sel.page+1} · #${ui.sel.idx+1}`;
+  }
+  function slotTag(item){
+    const a=item?.mapping?.assignment||{};
+    if(a.cc) return `CC${a.cc.midi_cc_number} · ch${fmtCh(a.cc.midi_channel)}`;
+    if(a.pitch_bend) return `PB · ch${fmtCh(a.pitch_bend.midi_channel)}`;
+    if(a.note) return `N${a.note.note_number} · ch${fmtCh(a.note.midi_channel)}`;
+    if(a.program_change) return `PC · ch${fmtCh(a.program_change.midi_channel)}`;
+    return "—";
+  }
+  // Human-readable display mode labels
+  const DM_LABELS = {
+    unipolar_int:"Integer", unipolar_percent:"Percent %",
+    bipolar_int:"Bipolar Int", bipolar_percent:"Bipolar %",
+    bipolar_50:"Bipolar 50", volume_db:"Volume dB"
+  };
+
+  function slotChips(item, kind){
+    const beh=item?.mapping?.behaviour||{};
+    const asg=item?.mapping?.assignment||{};
+    const out=[];
+    // Assignment chip: CC#·ch, Note#, PC#
+    if(asg.cc)            out.push(`CC${asg.cc.midi_cc_number}·ch${(asg.cc.midi_channel??0)+1}`);
+    else if(asg.pitch_bend) out.push(`PB·ch${(asg.pitch_bend.midi_channel??0)+1}`);
+    else if(asg.note)     out.push(`N${asg.note.note_number??60}·ch${(asg.note.midi_channel??0)+1}`);
+    else if(asg.program_change) out.push(`PC${asg.program_change.program??0}·ch${(asg.program_change.midi_channel??0)+1}`);
+    // Display mode chip (knobs always, buttons only if CC)
+    if(kind==="knob" || (kind==="button" && asg.cc)){
+      out.push(DM_LABELS[item.display_mode] || "Integer");
+    }
+    // Behaviour chip
+    if(kind==="knob"){
+      if(beh.absolute)       out.push(`${beh.absolute.min}–${beh.absolute.max}`);
+      else if(beh.relative)  out.push(`Rel step${beh.relative.step??1}`);
+      else if(beh.relative_offset) out.push(`RelOff step${beh.relative_offset.step??1}`);
+    }
+    if(kind==="button"){
+      if(beh.toggle){
+        if(beh.toggle.on===beh.toggle.off) out.push(`Fixed:${beh.toggle.on}`);
+        else out.push(`Toggle ${beh.toggle.off}↔${beh.toggle.on}`);
+      } else if(beh.gate)       out.push(`Gate ${beh.gate.off}↔${beh.gate.on}`);
+      else if(beh.trigger)      out.push(`Trigger:${beh.trigger.value??127}`);
+      else if(beh.incremental)  out.push(`Incr step:${beh.incremental.step??1}`+(beh.incremental.wrap?" wrap":""));
+      out.push(item.color||"White");
+    }
+    return out;
+  }
+
+  function renderPages(){
+    const list=el("#pagesList"); list.innerHTML="";
+    template.pages.forEach((pg,i)=>{
+      const d=document.createElement("div");
+      d.className="pageItem"+(i===ui.page?" active":"");
+      d.onclick=()=>{ ui.page=i; if(ui.sel?.kind!=="perf") ui.sel=null; renderAll(); };
+
+      const left=document.createElement("div"); left.className="left";
+      const n=document.createElement("div"); n.className="name"; n.textContent=`Page ${i+1}`;
+      const m=document.createElement("div"); m.className="meta"; m.textContent=pageSummary(pg);
+      left.appendChild(n); left.appendChild(m);
+
+      const actions=document.createElement("div"); actions.className="actions";
+      const dup=document.createElement("button"); dup.className="btn small"; dup.textContent="Dup";
+      dup.onclick=(e)=>{ e.stopPropagation(); template.pages.splice(i+1,0,deepClone(template.pages[i])); ui.page=i+1; setDirty(true); renderAll(); setStatus(`<span class="ok">✓</span> Page duplicated.`); };
+      const del=document.createElement("button"); del.className="btn small danger"; del.textContent="Del";
+      del.onclick=(e)=>{ e.stopPropagation(); if(template.pages.length<=1){ setStatus(`<span class="warn">!</span> At least 1 page required.`); return; }
+        template.pages.splice(i,1); ui.page=clamp(ui.page,0,template.pages.length-1); ui.sel=null; setDirty(true); renderAll(); setStatus(`<span class="ok">✓</span> Page deleted.`); };
+
+      actions.appendChild(dup); actions.appendChild(del);
+      d.appendChild(left); d.appendChild(actions);
+      list.appendChild(d);
+    });
+  }
+
+  function renderGrid(kind){
+    const pg=template.pages[ui.page];
+    const grid=el(kind==="knob" ? "#knobsGrid" : "#buttonsGrid");
+    const arr=kind==="knob" ? pg.knobs : pg.buttons;
+    grid.innerHTML="";
+    arr.forEach((item,idx)=>{
+      const s=document.createElement("div");
+      const active=ui.sel && ui.sel.kind===kind && ui.sel.page===ui.page && ui.sel.idx===idx;
+      s.className="slot"+(active?" active":"");
+      s.draggable=true;
+
+      s.addEventListener("dragstart",(e)=>{
+        ui.drag={kind,page:ui.page,idx};
+        s.classList.add("dragging");
+        e.dataTransfer.effectAllowed="move";
+      });
+      s.addEventListener("dragend",()=>{
+        ui.drag=null;
+        s.classList.remove("dragging");
+      });
+      s.addEventListener("dragover",(e)=>{ e.preventDefault(); const isLib=e.dataTransfer.types.includes("application/x-midiitem"); e.dataTransfer.dropEffect = isLib ? "copy" : "move"; s.classList.add("dropok"); });
+      s.addEventListener("dragleave",()=>{ s.classList.remove("dropok"); });
+      s.addEventListener("drop",(e)=>{
+        e.preventDefault();
+        s.classList.remove("dropok");
+        // A) Drop from MIDI Library (copy assign)
+        const midiPayload = e.dataTransfer.getData("application/x-midiitem");
+        if(midiPayload){
+          const mi = safeJsonParse(midiPayload);
+          const norm = normalizeMidiItem(mi);
+          if(norm){
+            // assign CC + range + label
+            const tgt = (kind==="knob") ? template.pages[ui.page].knobs[idx] : template.pages[ui.page].buttons[idx];
+            // mapping
+            if(!tgt.mapping) tgt.mapping={};
+            if(!tgt.mapping.assignment) tgt.mapping.assignment={};
+            if(!tgt.mapping.assignment.cc) tgt.mapping.assignment.cc={ midi_cc_number: norm.cc, midi_channel: 0 };
+            tgt.mapping.assignment.cc.midi_cc_number = norm.cc;
+            // keep existing channel
+            tgt.mapping.assignment.cc.midi_channel = (tgt.mapping.assignment.cc.midi_channel ?? 0);
+            if(!tgt.mapping.behaviour) tgt.mapping.behaviour={};
+            if(!tgt.mapping.behaviour.absolute) tgt.mapping.behaviour.absolute={min:0,max:127};
+            tgt.mapping.behaviour.absolute.min = norm.min;
+            tgt.mapping.behaviour.absolute.max = norm.max;
+
+            // label
+            tgt.custom_label = true;
+            tgt.user_label = norm.name;
+            tgt.label = norm.name;
+
+            ui.sel={kind,page:ui.page,idx};
+            setDirty(true); renderAll();
+            setStatus('<span class="ok">✓</span> Assigned ' + norm.name + ' (CC ' + norm.cc + ' ' + norm.min + '–' + norm.max + ').');
+          }
+          return;
+        }
+
+        // B) Slot swap (move)
+        if(!ui.drag) return;
+        if(ui.drag.kind!==kind) return;
+        if(ui.drag.page!==ui.page) return;
+        const from=ui.drag.idx, to=idx;
+        if(from===to) return;
+        const a = (kind==="knob") ? template.pages[ui.page].knobs : template.pages[ui.page].buttons;
+        const tmp=a[from]; a[from]=a[to]; a[to]=tmp;
+        ui.sel={kind,page:ui.page,idx:to};
+        setDirty(true); renderAll();
+        setStatus(`<span class="ok">✓</span> Moved via drag &amp; drop.`);
+      });
+
+      s.onclick=()=>{ ui.sel={kind,page:ui.page,idx};
+        const rp=document.querySelector('section.panel.inspector');
+        if(rp && rp.dataset.activeTab==='library' && typeof window.__setRightTab==='function') window.__setRightTab('inspector');
+        renderInspector(); renderGrid("knob"); renderGrid("button"); banner(); pillSel(); };
+
+      const drag=document.createElement("div"); drag.className="drag"; drag.textContent="≡"; drag.title="Drag to swap";
+      drag.dataset.help="Drag this "+kind+" and drop it onto another "+kind+" to swap their positions on the page.";
+      const top=document.createElement("div"); top.className="top";
+      const lbl=document.createElement("div"); lbl.className="lbl"; lbl.textContent=item.label||"—";
+      top.appendChild(lbl);
+
+      const sub=document.createElement("div"); sub.className="sub";
+      // Chips: assignment + mode + behaviour (no duplicate CC/CH)
+      slotChips(item,kind).forEach(t=>{ const sp=document.createElement("span"); sp.textContent=t; sub.appendChild(sp); });
+
+      // Copy/paste actions
+      const actions = document.createElement("div"); actions.className="slot-actions";
+      const copyBtn = document.createElement("button"); copyBtn.textContent="⎘"; copyBtn.title="Copy slot";
+      copyBtn.dataset.help="Copy this "+kind+"'s complete assignment (CC, mode, range, label) to the clipboard so you can paste it onto other "+kind+"s.";
+      const pasteBtn = document.createElement("button"); pasteBtn.className="paste-btn"; pasteBtn.title="Paste slot";
+      pasteBtn.dataset.help="Paste the copied "+kind+" assignment onto this slot. Only available after copying another "+kind+".";
+      pasteBtn.textContent="⎙";
+      if(slotClipboard && slotClipboard.kind===kind) pasteBtn.classList.add("has-clip");
+      copyBtn.addEventListener("click",(e)=>{
+        e.stopPropagation();
+        slotClipboard = { kind, data: deepClone(item) };
+        // Refresh all paste buttons
+        document.querySelectorAll(".slot-actions .paste-btn").forEach(b=>{
+          const slotKind = b.closest(".slot")?.dataset?.kind;
+          if(slotKind===kind) b.classList.add("has-clip");
+        });
+        setStatus('<span class="ok">✓</span> Slot copied.');
+      });
+      pasteBtn.addEventListener("click",(e)=>{
+        e.stopPropagation();
+        if(!slotClipboard || slotClipboard.kind!==kind) return;
+        const tgt = (kind==="knob") ? template.pages[ui.page].knobs : template.pages[ui.page].buttons;
+        tgt[idx] = deepClone(slotClipboard.data);
+        setDirty(true); renderAll();
+        setStatus('<span class="ok">✓</span> Slot pasted.');
+      });
+      actions.appendChild(copyBtn); actions.appendChild(pasteBtn);
+
+      s.appendChild(drag); s.appendChild(top); s.appendChild(sub); s.appendChild(actions);
+      s.dataset.kind = kind;
+      grid.appendChild(s);
+    });
+  }
+
+  // Inspector (ingekort t.o.v. jouw vorige versie; functioneel identiek)
+  function clearInspector(){ el("#inspector").innerHTML=""; }
+  function help(text){
+    const d=document.createElement("div"); d.className="hint";
+    d.style.background="rgba(255,255,255,.03)"; d.style.borderColor="var(--line)";
+    d.textContent=text; return d;
+  }
+  // Help texts per section
+  const SEC_HELP = {
+    "Basics": "Set the display name for this slot. Enable 'Custom label' to use a fixed name instead of the auto-generated one. Alt+click any field label to reset it.",
+    "MIDI assignment": "Choose the MIDI message type (CC, Note, Program Change) and the channel (1–16). For CC: also set the CC number and how the value is displayed on the keyboard screen.",
+    "Knob behaviour": "Absolute: sends values in a fixed min–max range. Relative: sends +1/−1 increments (127=up, 1=down). Relative Offset: same but uses 65=up, 63=down (check your synth docs).",
+    "Button behaviour": "Toggle: two states, press to flip on/off. Gate: on while held down. Trigger: single message on press. Fixed: always sends the same value. Incremental: steps through a range of values.",
+  };
+  function sec(title){
+    const wrap=document.createElement("div");
+    wrap.style.borderTop="1px solid var(--line)";
+    wrap.style.paddingTop="12px";
+    wrap.style.marginTop="12px";
+    const h=document.createElement("div"); h.className="sectTitle"; h.textContent=title;
+    if(SEC_HELP[title]) h.dataset.help = SEC_HELP[title];
+    wrap.appendChild(h);
+    return wrap;
+  }
+  function field(label, node, resetFn, helpText){
+    const w=document.createElement("div"); w.className="field"; w.style.marginBottom="10px";
+    const l=document.createElement("label"); l.className="small"; l.textContent=label;
+    if(resetFn){
+      l.style.cursor="pointer";
+      l.title="Alt+click to reset to default";
+      l.dataset.help = helpText || ("Alt+click to reset \""+label+"\" to its default value.");
+      l.addEventListener("click",(e)=>{ if(e.altKey){ resetFn(); setDirty(true); renderAll(); setStatus(`<span class="ok">✓</span> Reset.`); }});
+    } else if(helpText){
+      l.dataset.help = helpText;
+    }
+    if(node && helpText) node.dataset.help = helpText;
+    w.appendChild(l); w.appendChild(node);
+    return w;
+  }
+  function row2(a,b){
+    const r=document.createElement("div"); r.className="row";
+    a.style.flex="1"; b.style.flex="1";
+    r.appendChild(a); r.appendChild(b);
+    return r;
+  }
+  function select(opts, val, onChange){
+    const s=document.createElement("select");
+    opts.forEach(([v,t])=>{ const o=document.createElement("option"); o.value=v; o.textContent=t; s.appendChild(o); });
+    s.value=val;
+    s.addEventListener("change",()=>onChange(s.value));
+    return s;
+  }
+  function inputText(val, onChange){
+    const i=document.createElement("input"); i.type="text"; i.value=val||"";
+    // UX: select all on focus for fast editing
+    i.addEventListener("focus",()=>{ try{ i.select(); }catch(_e){} });
+    i.addEventListener("input",()=>onChange(i.value));
+    return i;
+  }
+  function inputNum(val, min, max, step, onChange){
+    const i=document.createElement("input"); i.type="number"; i.value=val;
+    i.min=min; i.max=max; i.step=step;
+    i.addEventListener("input",()=>onChange(i.value));
+    return i;
+  }
+  function check(val, onChange){
+    const w=document.createElement("label"); w.className="toggle";
+    const c=document.createElement("input"); c.type="checkbox"; c.checked=!!val;
+    c.addEventListener("change",()=>onChange(c.checked));
+    w.appendChild(c); w.appendChild(document.createElement("span"));
+    return w;
+  }
+
+  // Build a section for Modwheel or Touchstrip with full type switching
+  function buildWheelStripSection(title, obj, defaultCC, onChanged){
+    const s = sec(title);
+    const at = perfAsgType(obj.assignment);
+
+    const typeSel = select([
+      ["cc","CC (Control Change)"],
+      ["pitch_bend","Pitch Bend"],
+      ["program_change","Program Change"]
+    ], at, (v)=>{
+      perfSetType(obj, v);
+      setDirty(true);
+      onChanged();
+    });
+    const chIn = inputNum(fmtCh(perfGetCh(obj.assignment)),1,16,1,(v)=>{
+      const ch = parseCh(v);
+      if(obj.assignment.cc) obj.assignment.cc.midi_channel = ch;
+      else if(obj.assignment.pitch_bend) obj.assignment.pitch_bend.midi_channel = ch;
+      else if(obj.assignment.program_change) obj.assignment.program_change.midi_channel = ch;
+      setDirty(true);
+    });
+    s.appendChild(row2(field("Type", typeSel), field("Channel", chIn, ()=>{
+      if(obj.assignment.cc) obj.assignment.cc.midi_channel=0;
+      else if(obj.assignment.pitch_bend) obj.assignment.pitch_bend.midi_channel=0;
+      else if(obj.assignment.program_change) obj.assignment.program_change.midi_channel=0;
+    })));
+
+    if(at==="cc"){
+      const cc = obj.assignment.cc?.midi_cc_number ?? defaultCC;
+      const ccIn = inputNum(cc,0,127,1,(v)=>{ obj.assignment.cc.midi_cc_number=clamp(safeInt(v,defaultCC),0,127); setDirty(true); });
+      s.appendChild(field("CC #  (0–127)", ccIn, ()=>{ obj.assignment.cc.midi_cc_number=defaultCC; }));
+      // Range
+      const rng = obj.behaviour?.range || {min:0,max:127};
+      s.appendChild(row2(
+        field("Range min", inputNum(rng.min,0,127,1,(v)=>{ rng.min=clamp(safeInt(v,0),0,127); obj.behaviour={range:rng}; setDirty(true); }), ()=>{ rng.min=0; obj.behaviour={range:rng}; }),
+        field("Range max", inputNum(rng.max,0,127,1,(v)=>{ rng.max=clamp(safeInt(v,127),0,127); obj.behaviour={range:rng}; setDirty(true); }), ()=>{ rng.max=127; obj.behaviour={range:rng}; })
+      ));
+    } else if(at==="pitch_bend"){
+      const rng = obj.behaviour?.range || {min:0,max:16383};
+      s.appendChild(row2(
+        field("Range min  (0–16383)", inputNum(rng.min,0,16383,1,(v)=>{ rng.min=clamp(safeInt(v,0),0,16383); obj.behaviour={range:rng}; setDirty(true); }), ()=>{ rng.min=0; obj.behaviour={range:rng}; }),
+        field("Range max  (center 8192)", inputNum(rng.max,0,16383,1,(v)=>{ rng.max=clamp(safeInt(v,16383),0,16383); obj.behaviour={range:rng}; setDirty(true); }), ()=>{ rng.max=16383; obj.behaviour={range:rng}; })
+      ));
+    } else if(at==="program_change"){
+      const prog = obj.assignment.program_change?.program ?? 0;
+      const pIn = inputNum(prog,0,127,1,(v)=>{ obj.assignment.program_change.program=clamp(safeInt(v,0),0,127); setDirty(true); });
+      s.appendChild(field("Program # (0–127)", pIn, ()=>{ obj.assignment.program_change.program=0; }));
+    }
+    return s;
+  }
+
+  function renderPerfInspector(root){
+    const pb = template.wheel_assignments.Pitchbend;
+    const mw = template.wheel_assignments.Modulation;
+    const ts = template.touchstrip_assignments.TouchStrip;
+    const kz = template.keyboard_assignments[0];
+
+    // ── Pitchwheel: always pitch_bend type per KMT spec ────────
+    const s1 = sec("Pitch Wheel");
+    s1.appendChild(row2(
+      field("Channel", inputNum(fmtCh(pb.assignment.pitch_bend.midi_channel),1,16,1,(v)=>{ pb.assignment.pitch_bend.midi_channel=parseCh(v); setDirty(true); renderAllFast(); }), ()=>{ pb.assignment.pitch_bend.midi_channel=0; }),
+      field("—", (()=>{ const d=document.createElement("div"); d.style.cssText="font-size:11px;color:var(--muted);padding-top:6px"; d.textContent="Pitch bend only (hardware)"; return d; })(), null)
+    ));
+    const pbRng = pb.behaviour?.range || {min:0,max:16383};
+    s1.appendChild(row2(
+      field("Range min  (0–16383)", inputNum(pbRng.min,0,16383,1,(v)=>{ pbRng.min=clamp(safeInt(v,0),0,16383); pb.behaviour={range:pbRng}; setDirty(true); }), ()=>{ pbRng.min=0; pb.behaviour={range:pbRng}; }),
+      field("Range max  (center 8192)", inputNum(pbRng.max,0,16383,1,(v)=>{ pbRng.max=clamp(safeInt(v,16383),0,16383); pb.behaviour={range:pbRng}; setDirty(true); }), ()=>{ pbRng.max=16383; pb.behaviour={range:pbRng}; })
+    ));
+    root.appendChild(s1);
+
+    // ── Modwheel: CC / Pitch Bend / Program Change ──────────────
+    root.appendChild(buildWheelStripSection("Mod Wheel", mw, 1, ()=>{ renderInspector(); }));
+
+    // ── Touchstrip: CC / Pitch Bend / Program Change ────────────
+    root.appendChild(buildWheelStripSection("Touch Strip", ts, 11, ()=>{ renderInspector(); }));
+
+    // ── Keyzone ─────────────────────────────────────────────────
+    const VELOCITY_CURVES = [
+      ["null","Global (default)"],["soft_1","Soft 1"],["soft_2","Soft 2"],
+      ["soft_3","Soft 3"],["linear","Linear"],["hard_1","Hard 1"],
+      ["hard_2","Hard 2"],["hard_3","Hard 3"]
+    ];
+    const s4 = sec("Keyzone");
+    s4.appendChild(row2(
+      field("Channel", inputNum(fmtCh(kz.midi_channel),1,16,1,(v)=>{ kz.midi_channel=parseCh(v); setDirty(true); }), ()=>{ kz.midi_channel=0; }),
+      field("Transpose (semitones)", inputNum(kz.semitones_transpose??0,-127,127,1,(v)=>{ kz.semitones_transpose=clamp(safeInt(v,0),-127,127); setDirty(true); }), ()=>{ kz.semitones_transpose=0; })
+    ));
+    s4.appendChild(row2(
+      field("Lower key  (0–127)", inputNum(kz.lower_key??0,0,127,1,(v)=>{ kz.lower_key=clamp(safeInt(v,0),0,127); setDirty(true); }), ()=>{ kz.lower_key=0; }),
+      field("Upper key  (0–127)", inputNum(kz.upper_key,0,127,1,(v)=>{ kz.upper_key=clamp(safeInt(v,127),0,127); setDirty(true); }), ()=>{ kz.upper_key=127; })
+    ));
+    const velSel = select(VELOCITY_CURVES, kz.velocity_curve===null?"null":(kz.velocity_curve||"null"), (v)=>{ kz.velocity_curve = v==="null"?null:v; setDirty(true); });
+    s4.appendChild(field("Velocity curve", velSel));
+    root.appendChild(s4);
+  }
+
+  function renderSlotInspector(root){
+    const {kind,page,idx}=ui.sel;
+    const pg=template.pages[page];
+    const item = (kind==="knob") ? pg.knobs[idx] : pg.buttons[idx];
+
+    // ── Basics ────────────────────────────────────────────────
+    const s0=sec("Basics");
+    const customToggle = check(item.custom_label, (v)=>{
+      if(item.custom_label && !v) item.user_label = (item.user_label ?? item.label);
+      item.custom_label=v;
+      if(!v){ item.label = autoLabel(kind,item); }
+      else {
+        if(item.user_label?.trim().length) item.label = item.user_label;
+        else item.user_label = item.label;
+      }
+      setDirty(true); renderAllFast(); renderInspector();
+    });
+    const customToggleInput = customToggle.querySelector('input');
+    const labelInput = inputText(item.label, (v)=>{
+      item.label=v; item.user_label=v;
+      if(!item.custom_label){ item.custom_label=true; if(customToggleInput) customToggleInput.checked=true; }
+      setDirty(true); renderAllFast();
+    });
+    s0.appendChild(field("Label", labelInput, ()=>{
+      item.label = autoLabel(kind,item); item.custom_label=false;
+      if(customToggleInput) customToggleInput.checked=false;
+    }));
+    s0.appendChild(field("Custom label", customToggle));
+    root.appendChild(s0);
+
+    // ── MIDI Assignment ───────────────────────────────────────
+    const s1=sec("MIDI assignment");
+    // Knobs: CC and Program Change. Buttons: CC, Note, Program Change.
+    const typeOpts = kind==="knob"
+      ? [["cc","CC"],["program_change","Program Change"]]
+      : [["cc","CC"],["note","Note"],["program_change","Program Change"]];
+    const typeSel = select(typeOpts, asgType(item), (v)=>{
+      setAsgType(item,v); setDirty(true); renderAll();
+    });
+    const chIn = inputNum(fmtCh(getCh0(item)),1,16,1,(v)=>{ setCh0(item, parseCh(v)); setDirty(true); renderAllFast(); });
+    s1.appendChild(row2(field("Type", typeSel), field("Channel", chIn, ()=>{ setCh0(item,0); })));
+
+    const at = asgType(item);
+    if(at==="cc"){
+      const ccIn = inputNum(getCC(item),0,127,1,(v)=>{ setCC(item, clamp(safeInt(v,0),0,127)); if(!item.custom_label) item.label=`CC ${getCC(item)}`; setDirty(true); renderAllFast(); });
+      // All 6 display modes per NI documentation
+      const dmSel = select([
+        ["unipolar_int","Integer (0–127)"],
+        ["unipolar_percent","Percent (0–100%)"],
+        ["bipolar_int","Bipolar Int (−64 to +63)"],
+        ["bipolar_percent","Bipolar % (−100 to +100%)"],
+        ["bipolar_50","Bipolar 50 (−50 to +50)"],
+        ["volume_db","Volume dB (GM spec)"]
+      ], item.display_mode || "unipolar_int", (v)=>{ item.display_mode=v; setDirty(true); renderAllFast(); });
+      s1.appendChild(row2(field("CC #", ccIn, ()=>{ setCC(item,0); }), field("Display mode", dmSel)));
+    } else if(at==="note"){
+      const nn = item.mapping.assignment.note?.note_number ?? 60;
+      const noteIn = inputNum(nn,0,127,1,(v)=>{ item.mapping.assignment.note.note_number=clamp(safeInt(v,60),0,127); setDirty(true); renderAllFast(); });
+      s1.appendChild(field("Note #  (0=C-2, 60=C3, 127=G8)", noteIn, ()=>{ item.mapping.assignment.note.note_number=60; }));
+    } else if(at==="program_change"){
+      const prog = item.mapping.assignment.program_change?.program ?? 0;
+      const progIn = inputNum(prog,0,127,1,(v)=>{ item.mapping.assignment.program_change.program=clamp(safeInt(v,0),0,127); setDirty(true); renderAllFast(); });
+      s1.appendChild(field("Program # (0–127)", progIn, ()=>{ item.mapping.assignment.program_change.program=0; }));
+    }
+    root.appendChild(s1);
+
+    // ── Knob behaviour ────────────────────────────────────────
+    if(kind==="knob"){
+      const s2=sec("Knob behaviour");
+      const kbSel = select([
+        ["absolute","Absolute (sends 0–127 range)"],
+        ["relative","Relative (127=+1, 1=−1)"],
+        ["relative_offset","Relative Offset (65=+1, 63=−1)"]
+      ], knobBehType(item), (v)=>{ setKnobBeh(item,v); setDirty(true); renderAllFast(); renderInspector(); });
+      s2.appendChild(field("Mode", kbSel));
+
+      const kb = knobBehType(item);
+      if(kb==="absolute"){
+        const abs=item.mapping.behaviour.absolute || {min:0,max:127};
+        s2.appendChild(row2(
+          field("Min", inputNum(abs.min,0,127,1,(v)=>{ abs.min=clamp(safeInt(v,0),0,127); item.mapping.behaviour.absolute=abs; setDirty(true); renderAllFast(); }), ()=>{ abs.min=0; item.mapping.behaviour.absolute=abs; }),
+          field("Max", inputNum(abs.max,0,127,1,(v)=>{ abs.max=clamp(safeInt(v,127),0,127); item.mapping.behaviour.absolute=abs; setDirty(true); renderAllFast(); }), ()=>{ abs.max=127; item.mapping.behaviour.absolute=abs; })
+        ));
+      } else if(kb==="relative"){
+        const rel=item.mapping.behaviour.relative || {step:1};
+        s2.appendChild(field("Step size", inputNum(rel.step??1,1,64,1,(v)=>{ rel.step=clamp(safeInt(v,1),1,64); item.mapping.behaviour.relative=rel; setDirty(true); renderAllFast(); }), ()=>{ rel.step=1; item.mapping.behaviour.relative=rel; }));
+      } else if(kb==="relative_offset"){
+        const ro=item.mapping.behaviour.relative_offset || {step:1};
+        s2.appendChild(field("Step size", inputNum(ro.step??1,1,64,1,(v)=>{ ro.step=clamp(safeInt(v,1),1,64); item.mapping.behaviour.relative_offset=ro; setDirty(true); renderAllFast(); }), ()=>{ ro.step=1; item.mapping.behaviour.relative_offset=ro; }));
+      }
+      root.appendChild(s2);
+    }
+
+    // ── Button behaviour ──────────────────────────────────────
+    else {
+      const s2=sec("Button behaviour");
+      const behSel = select([
+        ["toggle","Toggle — two states, on/off"],
+        ["gate","Gate — on while held"],
+        ["trigger","Trigger — single message on press"],
+        ["fixed","Fixed — always same value"],
+        ["incremental","Incremental — step through values"]
+      ], buttonBehType(item), (v)=>{ setButtonBeh(item,v); setDirty(true); renderAllFast(); renderInspector(); });
+      const colorSel = select(
+        [["White","White"],["Red","Red"],["Green","Green"],["Blue","Blue"],["Yellow","Yellow"],["Orange","Orange"],["Purple","Purple"]],
+        item.color || "White", (v)=>{ item.color=v; setDirty(true); renderAllFast(); }
+      );
+      s2.appendChild(row2(field("Mode", behSel), field("Color", colorSel)));
+
+      const bt=buttonBehType(item);
+      if(bt==="toggle"){
+        const off=item.mapping.behaviour.toggle.off, on=item.mapping.behaviour.toggle.on;
+        s2.appendChild(row2(
+          field("Off value", inputNum(off,0,127,1,(v)=>{ item.mapping.behaviour.toggle.off=clamp(safeInt(v,0),0,127); setDirty(true); renderAllFast(); }), ()=>{ item.mapping.behaviour.toggle.off=0; }),
+          field("On value", inputNum(on,0,127,1,(v)=>{ item.mapping.behaviour.toggle.on=clamp(safeInt(v,127),0,127); setDirty(true); renderAllFast(); }), ()=>{ item.mapping.behaviour.toggle.on=127; })
+        ));
+      } else if(bt==="gate"){
+        const off=item.mapping.behaviour.gate.off, on=item.mapping.behaviour.gate.on;
+        s2.appendChild(row2(
+          field("Release value", inputNum(off,0,127,1,(v)=>{ item.mapping.behaviour.gate.off=clamp(safeInt(v,0),0,127); setDirty(true); renderAllFast(); }), ()=>{ item.mapping.behaviour.gate.off=0; }),
+          field("Press value", inputNum(on,0,127,1,(v)=>{ item.mapping.behaviour.gate.on=clamp(safeInt(v,127),0,127); setDirty(true); renderAllFast(); }), ()=>{ item.mapping.behaviour.gate.on=127; })
+        ));
+      } else if(bt==="trigger"){
+        const val=(item.mapping.behaviour.trigger?.value??127);
+        s2.appendChild(field("Value (0–127)", inputNum(val,0,127,1,(v)=>{ item.mapping.behaviour.trigger={value:clamp(safeInt(v,127),0,127)}; setDirty(true); renderAllFast(); }), ()=>{ item.mapping.behaviour.trigger={value:127}; }));
+      } else if(bt==="fixed"){
+        const val=item.mapping.behaviour.toggle.on;
+        s2.appendChild(field("Fixed value (0–127)", inputNum(val,0,127,1,(v)=>{ const vv=clamp(safeInt(v,0),0,127); item.mapping.behaviour.toggle.off=vv; item.mapping.behaviour.toggle.on=vv; setDirty(true); renderAllFast(); }), ()=>{ item.mapping.behaviour.toggle.off=0; item.mapping.behaviour.toggle.on=0; }));
+      } else if(bt==="incremental"){
+        const inc=item.mapping.behaviour.incremental || {step:1,wrap:true};
+        s2.appendChild(row2(
+          field("Step size (1–64)", inputNum(inc.step??1,1,64,1,(v)=>{ inc.step=clamp(safeInt(v,1),1,64); item.mapping.behaviour.incremental=inc; setDirty(true); renderAllFast(); }), ()=>{ inc.step=1; item.mapping.behaviour.incremental=inc; }),
+          field("Wrap around", check(inc.wrap??true,(v)=>{ inc.wrap=v; item.mapping.behaviour.incremental=inc; setDirty(true); renderAllFast(); }))
+        ));
+      }
+      // Note assignment on buttons: show velocity field
+      if(asgType(item)==="note"){
+        const vel=item.mapping.behaviour?.note?.velocity ?? item.mapping.behaviour?.trigger?.value ?? 127;
+        s2.appendChild(field("Note velocity (0–127)", inputNum(vel,0,127,1,(v)=>{ const vv=clamp(safeInt(v,127),0,127); if(!item.mapping.behaviour.note) item.mapping.behaviour.note={}; item.mapping.behaviour.note.velocity=vv; setDirty(true); renderAllFast(); }), ()=>{ if(item.mapping.behaviour.note) item.mapping.behaviour.note.velocity=127; }));
+      }
+      root.appendChild(s2);
+    }
+  }
+
+  function renderInspector(){
+    el("#inspector").innerHTML="";
+    const root=el("#inspector");
+    if(!ui.sel){ root.appendChild(help("No selection. Click a slot or open Performance.")); return; }
+    if(ui.sel.kind==="perf"){ renderPerfInspector(root); return; }
+    renderSlotInspector(root);
+  }
+
+  function renderAllFast(){
+    banner();
+    renderPages();
+    renderGrid("knob");
+    renderGrid("button");
+    pillSel();
+    recomputeDirty();
+  }
+  // ══════════════════════════════════════════════════════
+  // PREVIEW LAYOUT: measure available space, set CSS vars
+  // ══════════════════════════════════════════════════════
+  function layoutPreview(){
+    const pc = document.querySelector('.panel.preview .pc');
+    if(!pc) return;
+
+    const bannerEl = pc.querySelector('.banner');
+    const titleK   = pc.querySelector('.sectTitle.knobs-title');
+    const titleB   = pc.querySelector('.sectTitle.buttons-title');
+    const gridK    = pc.querySelector('.grid.knobs');
+    const gridB    = pc.querySelector('.grid.buttons');
+    if(!gridK || !gridB) return;
+
+    const pcH     = pc.clientHeight;
+    const pcPadV  = 10 + 6;   // padding-top + padding-bottom
+    const titleKH = titleK ? titleK.offsetHeight : 20;
+    const titleBH = titleB ? titleB.offsetHeight : 20;
+
+    // 1280×212 banner: real aspect ratio = 6.038:1
+    // Banner height = preview column width / 6.038, capped 60–110px
+    const pcW      = pc.clientWidth;
+    const bannerH  = 110;
+
+    // Total fixed vertical space
+    const gaps     = 6 + 4 + 8 + 4;  // margins between sections
+    const fixed    = pcPadV + bannerH + titleKH + titleBH + gaps;
+    const remaining = pcH - fixed;
+
+    // Split: knobs 58%, buttons 42%
+    const knobGridH = Math.floor(remaining * 0.58);
+    const btnGridH  = remaining - knobGridH;
+
+    // Knob diameter: constrained by row height and column width
+    const rowH  = (knobGridH - 6) / 2;          // 2 rows, gap:6
+    const colW  = (gridK.clientWidth - 18) / 4; // 4 cols, 3×gap:6
+    const knobD = 106;
+
+    // Button grid: 8 cols × 2 rows, gap:4
+    const btnH  = 83;
+
+    // Unified font sizes — same for knobs AND buttons
+    // Base font from knob diameter (knobs are usually smaller)
+    const baseFontPx   = 12;
+    const pillFontPx   = 10;
+    const pillHeightPx = 18;
+
+    const preview = document.querySelector('.panel.preview');
+    if(preview){
+      preview.style.setProperty('--knob-d',        knobD        + 'px');
+      preview.style.setProperty('--btn-h',          btnH         + 'px');
+      preview.style.setProperty('--banner-h',       bannerH      + 'px');
+      preview.style.setProperty('--preview-fs',     baseFontPx   + 'px');
+      preview.style.setProperty('--preview-pill-fs',pillFontPx   + 'px');
+      preview.style.setProperty('--preview-pill-h', pillHeightPx + 'px');
+    }
+  }
+
+  function renderAll(){
+    el("#templateName").value = template.template_name || "";
+    el("#hideTemplateName").checked = !!template.hide_template_name;
+    el("#midiOutPref").value = template.midi_output_preference || "";
+    banner();
+    renderPages();
+    renderGrid("knob");
+    renderGrid("button");
+    renderInspector();
+    pillSel();
+    recomputeDirty();
+    requestAnimationFrame(layoutPreview);
+  }
+
+  // Top bar
+  const pv = document.querySelector("#pillVer");
+  if(pv) pv.textContent = "v" + APP.version;
+el("#templateName").addEventListener("input",()=>{
+    template.template_name = el("#templateName").value;
+    setDirty(true); banner(); recomputeDirty();
+  });
+  el("#hideTemplateName").addEventListener("change",()=>{
+    template.hide_template_name = el("#hideTemplateName").checked;
+    setDirty(true); banner(); recomputeDirty();
+  });
+  el("#midiOutPref").addEventListener("change",()=>{
+    const v=el("#midiOutPref").value;
+    template.midi_output_preference = v ? v : null;
+    setDirty(true); recomputeDirty();
+  });
+
+  el("#btnAddPage").addEventListener("click",()=>{
+    const ch=template.pages.at(-1)?.knobs?.[0]?.mapping?.assignment?.cc?.midi_channel ?? 0;
+    template.pages.push(makePage(ch));
+    ui.page=template.pages.length-1;
+    ui.sel=null;
+    setDirty(true); renderAll();
+    setStatus(`<span class="ok">✓</span> Page added.`);
+  });
+
+  el("#btnPerf").addEventListener("click",()=>{
+    ui.sel={kind:"perf"};
+    renderInspector(); pillSel();
+  });
+
+  el("#btnResetSlot").addEventListener("click",()=>{
+    if(!ui.sel || ui.sel.kind==="perf") return;
+    const {kind,page,idx}=ui.sel;
+    const pg=template.pages[page];
+    const current = (kind==="knob")? pg.knobs[idx] : pg.buttons[idx];
+    const ch=getCh0(current);
+    if(kind==="knob") pg.knobs[idx]=makeKnob(14,ch);
+    else pg.buttons[idx]=makeButton(112,ch);
+    setDirty(true); renderAll();
+    setStatus(`<span class="ok">✓</span> Slot reset.`);
+  });
+
+  el("#btnNew").addEventListener("click",()=>{
+    if(dirty && !confirm("You have unsaved changes. Discard and start a new template?")) return;
+    template = makeTemplate();
+    ui.page=0; ui.sel=null;
+    setBaseline();
+    renderAll();
+    setStatus(`<span class="ok">✓</span> New template.`);
+  });
+
+  // Import/Export
+  el("#btnImport").addEventListener("click",()=>el("#fileImport").click());
+  el("#fileImport").addEventListener("change", async (e)=>{
+    const file=e.target.files?.[0]; if(!file) return;
+    try{
+      const txt=await file.text();
+      const obj=JSON.parse(txt);
+      if(!obj.pages || !Array.isArray(obj.pages)) throw new Error("No 'pages' array found.");
+      const def=makeTemplate();
+      obj.wheel_assignments = obj.wheel_assignments || def.wheel_assignments;
+      obj.touchstrip_assignments = obj.touchstrip_assignments || def.touchstrip_assignments;
+      obj.keyboard_assignments = obj.keyboard_assignments || def.keyboard_assignments;
+      obj.pedal_assignments = obj.pedal_assignments || def.pedal_assignments;
+      if(obj.midi_output_preference === undefined) obj.midi_output_preference = null;
+
+      obj.pages = obj.pages.map(pg=>{
+        const out={knobs:[],buttons:[]};
+        const k=Array.isArray(pg.knobs)?pg.knobs:[];
+        const b=Array.isArray(pg.buttons)?pg.buttons:[];
+        for(let i=0;i<8;i++) out.knobs[i]=k[i] || makeKnob(14+i,0);
+        for(let i=0;i<8;i++) out.buttons[i]=b[i] || makeButton(112+i,0);
+        return out;
+      });
+
+      if(dirty && !confirm("You have unsaved changes. Overwrite with imported template?")){
+        e.target.value=""; return;
+      }
+
+      template=obj;
+      ui.page=0; ui.sel=null;
+      setBaseline();
+      renderAll();
+      setStatus(`<span class="ok">✓</span> Imported: <span class="kbd">${file.name}</span>`);
+    }catch(err){
+      setStatus(`<span class="bad">✕</span> Import failed: ${String(err.message||err)}`);
+    }finally{ e.target.value=""; }
+  });
+
+  function downloadBlob(blob, filename){
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },0);
+  }
+
+  el("#btnExport").addEventListener("click",()=>{
+    try{
+      const out=deepClone(template);
+      if(!out.template_name) out.template_name="Template";
+      if(out.midi_output_preference === "") out.midi_output_preference=null;
+
+      const base=(out.template_name||"Template").replace(/[^a-z0-9_-]+/gi,"_").replace(/^_+|_+$/g,"");
+      const ts=stamp();
+
+      // 1. .kmt template file
+      downloadBlob(new Blob([JSON.stringify(out,null,2)],{type:"application/json"}), base+"_"+ts+".kmt");
+
+      // 2. CC library JSON (alleen als er items zijn)
+      const libItems = ui.midiLib?.items||[];
+      if(libItems.length){
+        setTimeout(()=>{
+          downloadBlob(new Blob([JSON.stringify(libItems,null,2)],{type:"application/json"}), base+"_cc-library_"+ts+".json");
+        }, 200);
+      }
+
+      setBaseline();
+      setStatus('<span class="ok">✓</span> Exported'+(libItems.length?' (+ CC library JSON)':'')+'.');
+    }catch(err){
+      setStatus('<span class="bad">✕</span> Export failed: '+String(err.message||err));
+    }
+  });
+
+  // ---------- Artwork crop (FIXED: 1:1 1280×212, no distortion) ----------
+  const artModal=el("#artModal");
+  const cropCanvas=el("#cropCanvas");
+  const ctx=cropCanvas.getContext("2d");
+  const zoomRange=el("#zoomRange");
+  const cropAreaEl=el("#cropArea");
+  const viewModeEl=null; // view toggle removed (fit-only)
+
+  const artState = { img:null, imgW:0, imgH:0, offX:0, offY:0, scale:1, dragging:false, lx:0, ly:0 };
+
+  function coverScale(){
+    if(!artState.img) return 1;
+    const W=cropCanvas.width, H=cropCanvas.height;
+    return Math.max(W/artState.imgW, H/artState.imgH);
+  }
+  function setViewMode(_mode){
+    // Fit-only preview (no 1:1 mode)
+    if(cropAreaEl){
+      cropAreaEl.classList.add("view-fit");
+      cropAreaEl.classList.remove("view-11");
+      cropAreaEl.scrollLeft = 0;
+      cropAreaEl.scrollTop = 0;
+    }
+    requestAnimationFrame(()=>{
+      layoutCropCanvas();
+      drawCrop(!artState.img);
+    });
+  }
+  function canvasToInternalFactor(){
+    const r=cropCanvas.getBoundingClientRect();
+    return r.width ? (cropCanvas.width / r.width) : 1;
+  }
+  function layoutCropCanvas(){
+    if(!cropAreaEl) return;
+        // Use clientWidth (stable with scrollbars); keep 10px padding on both sides.
+    const cw = cropAreaEl.clientWidth || cropAreaEl.getBoundingClientRect().width;
+    const avail = Math.max(240, cw - 20);
+    const w = Math.min(1280, avail);
+    const h = Math.round(w * (212/1280));
+    cropCanvas.style.width = w + "px";
+    cropCanvas.style.height = h + "px";
+  }
+
+  function drawCrop(empty=false){
+    const W=cropCanvas.width, H=cropCanvas.height; // 1280×212
+    ctx.clearRect(0,0,W,H);
+
+    // background
+    const g=ctx.createLinearGradient(0,0,W,H);
+    g.addColorStop(0,"rgba(122,162,255,.20)");
+    g.addColorStop(1,"rgba(92,255,154,.12)");
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+    if(!empty && artState.img){
+      const im=artState.img;
+      const iw=artState.imgW*artState.scale;
+      const ih=artState.imgH*artState.scale;
+      const x=(W-iw)/2 + artState.offX;
+      const y=(H-ih)/2 + artState.offY;
+      ctx.drawImage(im,x,y,iw,ih);
+    }else{
+      ctx.fillStyle="rgba(0,0,0,.25)"; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle="rgba(231,238,252,.75)"; ctx.font="14px system-ui";
+      ctx.fillText("No artwork — choose an image", 18, 38);
+    }
+
+    // preview border only (NOT exported)
+    ctx.strokeStyle="rgba(255,255,255,.25)";
+    ctx.lineWidth=2;
+    ctx.strokeRect(1,1,W-2,H-2);
+  }
+
+  function openArt(){
+    artModal.style.display="flex";
+    artState.cleared = false; // reset on open
+    setViewMode("fit");
+    layoutCropCanvas();
+    if(template.image_data){
+      const im=new Image();
+      im.onload=()=>{
+        artState.img=im; artState.imgW=im.width; artState.imgH=im.height;
+        artState.offX=0; artState.offY=0;
+        artState.scale=coverScale();
+        zoomRange.value=String(artState.scale);
+        drawCrop(false);
+      };
+      im.src=template.image_data;
+    }else{
+      drawCrop(true);
+    }
+  }
+  function closeArt(){ artModal.style.display="none"; }
+
+  function applyArt(){
+    if(artState.cleared || !artState.img){
+      // User hit Remove then Apply — actually remove from template
+      template.image_data = "";
+      setDirty(true);
+      renderAll();
+      closeArt();
+      setStatus('<span class="ok">✓</span> Artwork removed.');
+      return;
+    }
+
+    // Export canvas is EXACT 1280×212 (same aspect, no X/Y mismatch)
+    const outW=1280, outH=212;
+    const out=document.createElement("canvas");
+    out.width=outW; out.height=outH;
+    const o=out.getContext("2d");
+
+    // background
+    const g=o.createLinearGradient(0,0,outW,outH);
+    g.addColorStop(0,"rgba(122,162,255,.20)");
+    g.addColorStop(1,"rgba(92,255,154,.12)");
+    o.fillStyle=g; o.fillRect(0,0,outW,outH);
+
+    // same composition as preview, but WITHOUT border stroke
+    const iw=artState.imgW*artState.scale;
+    const ih=artState.imgH*artState.scale;
+    const x=(outW-iw)/2 + artState.offX;
+    const y=(outH-ih)/2 + artState.offY;
+    o.drawImage(artState.img, x, y, iw, ih);
+
+    template.image_data = out.toDataURL("image/webp", 0.92);
+    if(el("#hideTemplateName") && el("#hideTemplateName").checked) template.hide_template_name = true;
+
+    setDirty(true);
+    renderAll();
+    closeArt();
+    setStatus(`<span class="ok">✓</span> Artwork toegepast (1280×212, geen vervorming).`);
+  }
+
+  function clearArt(){
+    // Only clear the modal canvas state — do NOT touch template.image_data yet.
+    // Changes only apply to the template when the user clicks Apply.
+    artState.img = null;
+    artState.imgW = 0; artState.imgH = 0;
+    artState.offX = 0; artState.offY = 0;
+    artState.scale = 1;
+    artState.cleared = true; // flag: user wants artwork removed on Apply
+
+    const fi = el("#fileArtwork");
+    if(fi) fi.value = "";
+
+    drawCrop(true);
+    setStatus('<span class="warn">!</span> Artwork cleared — click Apply to save, or Close to cancel.');
+  }
+
+  el("#btnArtwork").addEventListener("click", openArt);
+  el("#btnCloseArt").addEventListener("click", closeArt);
+  el("#btnApplyArt").addEventListener("click", applyArt);
+  el("#btnClearArt").addEventListener("click", clearArt);
+
+    const btnPickArt = el("#btnPickArt");
+  if(btnPickArt) btnPickArt.addEventListener("click",()=>el("#fileArtwork").click());
+  el("#btnPickArtTop").addEventListener("click",()=>el("#fileArtwork").click());
+  el("#fileArtwork").addEventListener("change",(e)=>{
+    const f=e.target.files?.[0]; if(!f) return;
+    const url=URL.createObjectURL(f);
+    const im=new Image();
+    im.onload=()=>{
+      artState.img=im; artState.imgW=im.width; artState.imgH=im.height;
+      artState.offX=0; artState.offY=0;
+      artState.scale=coverScale();
+      zoomRange.value=String(artState.scale);
+      drawCrop(false);
+      URL.revokeObjectURL(url);
+    };
+    im.src=url;
+    e.target.value="";
+  });
+
+  zoomRange.addEventListener("input",()=>{ artState.scale=parseFloat(zoomRange.value); drawCrop(!artState.img); });
+  el("#btnArtReset").addEventListener("click",()=>{
+    if(!artState.img){ drawCrop(true); return; }
+    artState.offX=0; artState.offY=0;
+    artState.scale=coverScale();
+    zoomRange.value=String(artState.scale);
+    drawCrop(false);
+  });
+  window.addEventListener("resize",()=>{ requestAnimationFrame(()=>{ layoutCropCanvas(); drawCrop(!artState.img); }); });
+  cropCanvas.addEventListener("pointerdown",(e)=>{
+    if(!artState.img) return;
+    artState.dragging=true;
+    artState.lx=e.clientX; artState.ly=e.clientY;
+    try{ cropCanvas.setPointerCapture(e.pointerId); }catch{}
+  });
+  cropCanvas.addEventListener("pointerup",()=>{ artState.dragging=false; });
+  cropCanvas.addEventListener("pointercancel",()=>{ artState.dragging=false; });
+  cropCanvas.addEventListener("pointermove",(e)=>{
+    if(!artState.dragging) return;
+    const f=canvasToInternalFactor();
+    const dx=(e.clientX-artState.lx)*f, dy=(e.clientY-artState.ly)*f;
+    artState.lx=e.clientX; artState.ly=e.clientY;
+    artState.offX+=dx; artState.offY+=dy;
+    drawCrop(false);
+  });
+
+  // ══════════════════════════════════════════════════════
+  // FOOTER HELP TOOLTIP ENGINE
+  // Shows data-help text in footer on hover/focus
+  // ══════════════════════════════════════════════════════
+  (function(){
+    const helpEl = el("#footerHelp");
+    if(!helpEl) return;
+
+    // Default hint cycling (shown when nothing is hovered)
+    const defaults = [
+      "Click any knob or button slot to select it and edit its settings in the Inspector.",
+      "Drag a slot onto another to swap their positions on the current page.",
+      "Alt+click any field label in the Inspector to reset it to its default value.",
+      "Drag items from the MIDI Library directly onto knob or button slots to assign them.",
+      "Use the ⎘ copy and ⎙ paste buttons (hover a slot) to duplicate assignments across slots.",
+      "Set Start/End page numbers in the MIDI Library to scan only the relevant pages of a PDF.",
+      "Export saves both the .kmt template and (if loaded) a CC library .json file.",
+      "Each template can have up to 16 pages of 8 knobs + 8 buttons.",
+    ];
+    let defaultIdx = 0;
+    let defaultTimer = null;
+    let activeHelp = false;
+
+    function showDefault(){
+      if(activeHelp) return;
+      helpEl.textContent = defaults[defaultIdx % defaults.length];
+      helpEl.classList.remove("active");
+      defaultIdx++;
+    }
+    function startCycling(){
+      showDefault();
+      defaultTimer = setInterval(showDefault, 6000);
+    }
+    function stopCycling(){
+      clearInterval(defaultTimer);
+    }
+
+    // Show help text on hover/focus
+    function attachHelp(root){
+      root.addEventListener("mouseover", (e)=>{
+        const t = e.target.closest("[data-help]");
+        if(!t) return;
+        activeHelp = true;
+        helpEl.textContent = t.dataset.help;
+        helpEl.classList.add("active");
+      }, true);
+      root.addEventListener("mouseout", (e)=>{
+        const t = e.target.closest("[data-help]");
+        if(!t) return;
+        // Check if still hovering a help element
+        const related = e.relatedTarget?.closest("[data-help]");
+        if(!related){
+          activeHelp = false;
+          helpEl.classList.remove("active");
+          showDefault();
+        }
+      }, true);
+      root.addEventListener("focusin", (e)=>{
+        const t = e.target.closest("[data-help]");
+        if(!t) return;
+        activeHelp = true;
+        helpEl.textContent = t.dataset.help;
+        helpEl.classList.add("active");
+      }, true);
+      root.addEventListener("focusout", (e)=>{
+        const t = e.target.closest("[data-help]");
+        if(!t) return;
+        activeHelp = false;
+        helpEl.classList.remove("active");
+        showDefault();
+      }, true);
+    }
+
+    attachHelp(document.body);
+    startCycling();
+  })();
+
+  // init
+  setBaseline();
+  initMidiLibUi();
+  renderAll();
+  drawCrop(true);
+  // layoutPreview is called by renderAll via rAF; also wire resize
+  window.addEventListener('resize', layoutPreview);
+})();
+
+  // Right panel tabs: Inspector / MIDI Library
+  (function(){
+    const panel = document.querySelector('section.panel.inspector');
+    if(!panel) return;
+    const tabs = Array.from(panel.querySelectorAll('.tab'));
+    const paneInspector = panel.querySelector('#paneInspector');
+    const paneLibrary = panel.querySelector('#paneLibrary');
+    function setTab(name){
+      tabs.forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+      if(paneInspector) paneInspector.classList.toggle('active', name==='inspector');
+      if(paneLibrary) paneLibrary.classList.toggle('active', name==='library');
+      panel.dataset.activeTab = name;
+      // keep scroll per tab simple: reset when switching
+      const pc = panel.querySelector('.pc');
+      if(pc) pc.scrollTop = 0;
+    }
+    tabs.forEach(b=>b.addEventListener('click', ()=>setTab(b.dataset.tab)));
+    setTab('inspector');
+    // Expose small helper so code can jump to library after import
+    window.__setRightTab = setTab;
+  })();
+
+</script>
+</body>
+</html>
