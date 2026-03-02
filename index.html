@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>KMT Editor v1.7.9</title>
+<title>KMT Editor v1.8.1</title>
 <style>
     :root{
       --bg:#0b0d10; --panel:#11151b; --panel2:#0f1318; --text:#e7eefc; --muted:#94a3b8;
@@ -22,6 +22,20 @@
         radial-gradient(900px 650px at 0% 45%, rgba(92,255,154,.08), transparent 60%),
         var(--bg);
     }
+
+    /* Scrollbars (Chromium/WebKit + Firefox) */
+    *{
+      scrollbar-width: thin;
+      scrollbar-color: rgb(11,13,16) rgb(11,13,16);
+    }
+    *::-webkit-scrollbar{ width:10px; height:10px; }
+    *::-webkit-scrollbar-track{ background: rgb(11,13,16); }
+    *::-webkit-scrollbar-thumb{
+      background: rgb(11,13,16);
+      border: 2px solid rgb(11,13,16);
+      border-radius: 999px;
+    }
+
     .app{height:100%; display:grid; grid-template-rows:auto 1fr auto}
     header{
       display:flex; align-items:center; gap:12px; padding:14px 16px;
@@ -430,7 +444,7 @@ canvas{display:block}
 <div class="brand">
 <div class="t">
         KMT Editor
-        <span class="pill" id="pillVer">v1.7.9</span>
+        <span class="pill" id="pillVer">v1.8.1</span>
 
         <a class="pill donateSpec" id="donateBadge" href="https://buymeacoffee.com/patronix.music" target="_blank" rel="noopener noreferrer">Buy me a coffee <span class="donateCupWrap" aria-hidden="true"><img class="donateCupImg" alt="" src="data:image/png;base64,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"/></span></a>
 
@@ -561,7 +575,7 @@ canvas{display:block}
 </main>
 <footer>
 <div class="status" id="status">Ready.</div>
-<div class="footerCopy">© Patronix</div>
+<div class="footerCopy">© Patronix 2026</div>
 <div class="footerHelp" id="footerHelp"></div>
 <input accept=".kmt,application/json" id="fileImport" style="display:none" type="file"/>
 <input accept="image/*" id="fileArtwork" style="display:none" type="file"/>
@@ -608,7 +622,7 @@ canvas{display:block}
 <script>
 (() => {
   const APP = {
-    version:"1.7.9",
+    version:"1.8.0",
     build: new Date().toISOString().slice(0,19).replace("T"," "),
     dataVersion: "1",
     changelog: [
@@ -1320,6 +1334,98 @@ canvas{display:block}
     if(a.note) a.note.midi_channel = ch0;
     if(a.program_change) a.program_change.midi_channel = ch0;
   }
+
+  function getGlobalCh0(){
+    // Prefer first page first control, else keyzone 0, else 0.
+    try{
+      const pg0 = template.pages?.[0];
+      const k0 = pg0?.knobs?.[0];
+      const b0 = pg0?.buttons?.[0];
+      if(k0) return getCh0(k0);
+      if(b0) return getCh0(b0);
+      const kz0 = template.keyboard_assignments?.[0];
+      if(kz0 && typeof kz0.midi_channel === "number") return kz0.midi_channel;
+    }catch(_){}
+    return 0;
+  }
+
+  function setGlobalMidiChannel(ch0){
+    // Pages (knobs + buttons)
+    (template.pages||[]).forEach(pg=>{
+      (pg.knobs||[]).forEach(k=>{ try{ setCh0(k, ch0); }catch(_){ } });
+      (pg.buttons||[]).forEach(b=>{ try{ setCh0(b, ch0); }catch(_){ } });
+    });
+
+    // Performance controls
+    const w = template.wheel_assignments || {};
+    const t = template.touchstrip_assignments || {};
+
+    const perfObjs = [
+      w.Pitchbend,
+      w.Modulation,
+      t.TouchStrip
+    ].filter(Boolean);
+
+    perfObjs.forEach(obj=>{
+      const a = obj?.assignment || {};
+      if(a.cc) a.cc.midi_channel = ch0;
+      if(a.pitch_bend) a.pitch_bend.midi_channel = ch0;
+      if(a.program_change) a.program_change.midi_channel = ch0;
+      if(a.note) a.note.midi_channel = ch0;
+    });
+
+    // Keyzones (global channel for keybed)
+    if(template.keyboard_assignments?.[0]){
+      template.keyboard_assignments[0].midi_channel = ch0;
+    }
+
+    // Pedals (best-effort; structures differ per type)
+    const pa = template.pedal_assignments || {};
+
+    // Expression / continuous
+    try{
+      const exp = pa.PedalExpression?.pedal_continuous_configuration?.mapping?.assignment;
+      if(exp?.cc) exp.cc.midi_channel = ch0;
+      if(exp?.pitch_bend) exp.pitch_bend.midi_channel = ch0;
+      if(exp?.program_change) exp.program_change.midi_channel = ch0;
+      if(exp?.note) exp.note.midi_channel = ch0;
+    }catch(_){}
+
+    // Sustain / switch (tip/ring)
+    try{
+      const sus = pa.PedalSustain?.pedal_switch_configuration;
+      const tip = sus?.mapping_tip?.assignment;
+      const ring = sus?.mapping_ring?.assignment;
+      if(tip?.cc) tip.cc.midi_channel = ch0;
+      if(tip?.note) tip.note.midi_channel = ch0;
+      if(tip?.program_change) tip.program_change.midi_channel = ch0;
+      if(ring?.cc) ring.cc.midi_channel = ch0;
+      if(ring?.note) ring.note.midi_channel = ch0;
+      if(ring?.program_change) ring.program_change.midi_channel = ch0;
+    }catch(_){}
+
+    // Assign 1/2 if present
+    ["PedalAssign1","PedalAssign2"].forEach(key=>{
+      try{
+        const sw = pa[key]?.pedal_switch_configuration;
+        const tip = sw?.mapping_tip?.assignment;
+        const ring = sw?.mapping_ring?.assignment;
+        if(tip?.cc) tip.cc.midi_channel = ch0;
+        if(tip?.note) tip.note.midi_channel = ch0;
+        if(tip?.program_change) tip.program_change.midi_channel = ch0;
+        if(ring?.cc) ring.cc.midi_channel = ch0;
+        if(ring?.note) ring.note.midi_channel = ch0;
+        if(ring?.program_change) ring.program_change.midi_channel = ch0;
+
+        const cont = pa[key]?.pedal_continuous_configuration?.mapping?.assignment;
+        if(cont?.cc) cont.cc.midi_channel = ch0;
+        if(cont?.pitch_bend) cont.pitch_bend.midi_channel = ch0;
+        if(cont?.program_change) cont.program_change.midi_channel = ch0;
+        if(cont?.note) cont.note.midi_channel = ch0;
+      }catch(_){}
+    });
+  }
+
   function getCC(item){ return item?.mapping?.assignment?.cc?.midi_cc_number ?? 0; }
 
   function autoLabel(kind,item){
@@ -1761,6 +1867,18 @@ canvas{display:block}
     const {kind,page,idx}=ui.sel;
     const pg=template.pages[page];
     const item = (kind==="knob") ? pg.knobs[idx] : pg.buttons[idx];
+
+    // ── Global MIDI Channel ──────────────────────────────────
+    const gChIn = inputNum(fmtCh(getGlobalCh0()),1,16,1,(v)=>{
+      const ch0 = parseCh(v, 0);
+      setGlobalMidiChannel(ch0);
+      setDirty(true); renderAllFast(); renderInspector();
+    });
+    root.appendChild(field("Global MIDI Channel", gChIn, ()=>{
+      setGlobalMidiChannel(0);
+      setDirty(true); renderAllFast(); renderInspector();
+    }));
+
 
     // ── Basics ────────────────────────────────────────────────
     const s0=sec("Basics");
