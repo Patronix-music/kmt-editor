@@ -1,3 +1,5 @@
+Live site is at https://patronix-music.github.io/kmt-editor/
+
 # KMT Editor
 
 Standalone HTML editor for NI Kontrol S-Series MK3 MIDI template files (`.kmt`).
